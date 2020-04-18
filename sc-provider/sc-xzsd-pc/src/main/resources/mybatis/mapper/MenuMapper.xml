@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.menu.dao.MenuDao">
+
+    <!-- 菜单存在个数 -->
+    <select id="checkMenu" parameterType="java.lang.String" resultType="int">
+        select
+          count(menu_name)
+        from t_sys_menu
+        where menu_name = #{menuName}
+    </select>
+    
+    <!-- 新增菜单 -->
+    <insert id="addMenu" >
+        insert into t_sys_menu
+        (
+          menu_id,
+          menu_name,
+          menu_level,
+          menu_path,
+          comments,
+          is_deleted,
+          create_time,
+          creator,
+          version
+        )
+        values
+        (
+          #{menuId},
+          #{menuName},
+          #{menuLevel},
+          #{menuPath},
+          #{comments},
+          0,
+          now(),
+          #{creator},
+          0
+        )
+    </insert>
+
+    <!-- 删除菜单 -->
+    <update id="removeMenu" parameterType="java.lang.String">
+        update t_sys_menu
+        set
+          is_deleted = 1,
+          modified_time = now(),
+          last_modified_by = #{userId},
+          version = version + 1
+        where
+          menu_id = #{menuId}
+    </update>
+
+    <!-- 修改菜单信息 -->
+    <update id="updateMenu">
+        update t_sys_menu
+        set
+          <if test="menuName != null and menuName != ''">
+              menu_name = #{menuName},
+          </if>
+
+          <if test="menuLevel != null and menuLevel != ''">
+              menu_level = #{menuLevel},
+          </if>
+
+          <if test="menuPath != null and menuPath != ''">
+              menu_path = #{menuPath},
+          </if>
+
+          <if test="comments != null and comments != ''">
+              comments = #{comments},
+          </if>
+
+          modified_time = now(),
+          last_modified_by = #{lastModifiedBy},
+          version = version + 1
+        where is_deleted = 0
+          and menu_id = #{menuId}
+          and version = #{version}
+
+    </update>
+
+    <!-- 查询菜单信息 -->
+    <select id="queryMenu" parameterType="java.lang.String" resultType="com.xzsd.pc.menu.entity.QueryMenuVO">
+        select
+          menu_name menuName,
+          menu_level menuLevel,
+          menu_path menuPath,
+          comments comments,
+          version version
+        from t_sys_menu
+        where is_deleted = 0
+          and menu_id = #{menuId}
+    </select>
+
+
+    <!--根据角色返回菜单选项（列表）查询-->
+    <select id="menuByRole" resultType="com.xzsd.pc.menu.entity.MenuByRoleVO">
+        select
+        menu_id as menuId,
+        menu_name as menuName,
+        version as version
+        from t_sys_menu
+        where is_deleted = 0
+        <if test="role == 1">
+            and menu_level = #{role}
+        </if>
+    </select>
+
+
+    <!-- 菜单（列表）查询 -->
+    <select id="menuWithList" resultType="com.xzsd.pc.menu.entity.MenuWithListVO">
+        select
+          menu_id menuId,
+          menu_name menuName,
+          version version
+        from t_sys_menu
+        where is_deleted = 0
+        order by create_time desc
+    </select>
+</mapper>

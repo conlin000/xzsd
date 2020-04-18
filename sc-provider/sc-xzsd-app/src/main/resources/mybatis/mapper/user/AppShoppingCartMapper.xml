@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.shoppingCart.dao.ShoppingCartDao">
+
+
+    <!--购物车新增-->
+    <insert id="addShoppingCart" >
+        insert into t_app_shopping_cart
+        (
+          shopping_cart_id,
+          user_code,
+          goods_code,
+          goods_name,
+          image_path,
+          selling_price,
+          goods_count,
+          total_price,
+          is_paid,
+          is_deleted,
+          create_time,
+          version
+        )
+        (
+          select
+            #{shoppingCartId},
+            #{userCode},
+            #{goodsCode},
+            goods_name,
+            goods_images,
+            selling_price,
+            #{goodsCount},
+            selling_price * #{goodsCount},
+            0,
+            0,
+            now(),
+            0
+          from t_sys_goods
+          where is_deleted = 0
+            and goods_code = #{goodsCode}
+        )
+    </insert>
+
+
+    <!--购物车删除-->
+    <update id="removeShoppingCart">
+        update t_app_shopping_cart
+        set
+          is_deleted = 1
+        where shopping_cart_id in
+          <foreach collection="shoppingCartIdList" item="item" index="index" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </update>
+
+
+    <!--修改商品数量-->
+    <update id="updateGoodsCount">
+        update t_app_shopping_cart
+        set
+          goods_count = #{goodsCount},
+          total_price = selling_price * #{goodsCount}
+        where is_deleted = 0
+          and shopping_cart_id = #{shoppingCartId}
+    </update>
+
+
+    <!-- 配置resultMap -->
+    <resultMap id="List" type="com.xzsd.app.user.shoppingCart.entity.ShoppingCartListVO">
+        <id property="shoppingCartId" column="shoppingCartId"></id>
+        <result property="userCode" column="userCode"></result>
+        <result property="goodsCode" column="goodsCode"></result>
+        <result property="imagePath" column="imagePath"></result>
+        <result property="goodsName" column="goodsName"></result>
+        <result property="sellingPrice" column="sellingPrice"></result>
+        <result property="goodsCount" column="goodsCount"></result>
+        <result property="totalPrice" column="totalPrice"></result>
+    </resultMap>
+
+    <!--购物车（列表）查询-->
+    <select id="shoppingCartWithList" resultMap="List">
+      select
+        shopping_cart_id as shoppingCartId,
+        user_code as userCode,
+        goods_code as goodsCode,
+        image_path as imagePath,
+        goods_name as goodsName,
+        selling_price as sellingPrice,
+        goods_count as goodsCount,
+        total_price as totalPrice
+      from t_app_shopping_cart
+      where is_deleted = 0
+        and is_paid = 0
+        and user_code = #{userCode}
+    </select>
+
+
+    <!--被选中的购物车查询-->
+    <select id="checkShoppingCart" resultType="com.xzsd.app.user.shoppingCart.entity.ShoppingCartSumPriceVO">
+        select
+          shopping_cart_id as shoppingCartId,
+          user_code as userCode,
+          total_price as totalPrice
+        from t_app_shopping_cart
+        where is_deleted = 0
+          and user_code = #{userId}
+          and shopping_cart_id in
+          <foreach collection="shoppingCartId" item="item" index="index" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </select>
+</mapper>

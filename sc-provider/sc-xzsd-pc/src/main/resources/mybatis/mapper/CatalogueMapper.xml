@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.catalogue.dao.CatalogueDao">
+
+    <!-- 检查分类存在个数 -->
+    <select id="checkClassName" parameterType="java.lang.String" resultType="int">
+        select
+          count(class_name)
+        from t_sys_catalogue_management
+        where is_deleted = 0
+          and class_name = #{className}
+          and class_level = #{classLevel}
+    </select>
+
+
+    <!-- 新增分类 -->
+    <insert id="addCatalogue" parameterType="com.xzsd.pc.catalogue.entity.CatalogueInfo">
+        insert into t_sys_catalogue_management
+        (
+          class_code,
+          class_level,
+          class_name,
+          parent_class_code,
+          note,
+          is_deleted,
+          creator,
+          create_time,
+          last_modified_by,
+          modified_time,
+          version
+        )
+        values
+        (
+          #{classCode},
+          #{classLevel},
+          #{className},
+          #{parentClassCode},
+          #{note},
+          0,
+          #{creator},
+          now(),
+          #{modifiedBy},
+          now(),
+          0
+        )
+    </insert>
+
+    <!-- 删除商品分类 -->
+    <update id="removeCatalogue" parameterType="java.lang.String">
+        update t_sys_catalogue_management
+        set
+          is_deleted = 1,
+          last_modified_by = #{userId},
+          modified_time = now(),
+          version = version + 1
+        where class_Code = #{classId}
+          or parent_class_code = #{classId}
+
+    </update>
+
+    <!-- 修改商品分类信息 -->
+    <update id="updateCatalogue" parameterType="com.xzsd.pc.catalogue.entity.CatalogueInfo">
+        update t_sys_catalogue_management
+        set
+        <if test="className != null and className != ''">
+            class_name = #{className},
+        </if>
+        <if test="note != null and note != ''">
+            note = #{note},
+        </if>
+        last_modified_by = #{modifiedBy},
+        modified_time = now(),
+        version = version + 1
+        where is_deleted = 0
+        and class_code = #{classCode}
+        and version = #{version}
+    </update>
+
+    <!-- 分类详情查询 -->
+    <select id="queryClass" parameterType="java.lang.String" resultType="com.xzsd.pc.catalogue.entity.QueryCatalogueVO">
+        select
+          class_name className,
+          note note
+        from t_sys_catalogue_management
+        where is_deleted = 0
+          and class_code = #{classCode}
+    </select>
+
+
+    <!-- 配置resulMap映射 -->
+    <resultMap id="classMap" type="com.xzsd.pc.catalogue.entity.CalalogueWithListVO">
+        <id property="classCode" column="firClassCode"></id>
+        <result property="className" column="firClassName"></result>
+        <result property="classLevel" column="firClassLevel"></result>
+        <result property="version" column="version1"></result>
+        
+        <collection property="secClass" javaType="list" ofType="com.xzsd.pc.catalogue.entity.CalalogueWithListVO">
+            <id property="classCode" column="secClassCode"></id>
+            <result property="className" column="secClassName"></result>
+            <result property="parentClassCode" column="parentClassCode"></result>
+            <result property="classLevel" column="secClassLevel"></result>
+            <result property="version" column="version2"></result>
+        </collection>
+    </resultMap>
+
+
+    <!-- 分类列表查询 -->
+    <select id="classWithList" resultMap="classMap">
+      select
+        c1.class_code as firClassCode,
+        c1.class_level as firClassLevel,
+        c1.class_name firClassName,
+        c1.version as version1,
+        c2.class_code as secClassCode,
+        c2.class_name as secClassName,
+        c2.parent_class_code as parentClassCode,
+        c2.class_level as secClassLevel,
+        c2.version as version2
+      from
+        t_sys_catalogue_management as c1
+      join
+        t_sys_catalogue_management as c2
+      on
+        c1.class_code = c2.parent_class_code
+      where c1.is_deleted = 0
+        and c2.is_deleted = 0
+        and c1.class_level = 1
+    </select>
+</mapper>

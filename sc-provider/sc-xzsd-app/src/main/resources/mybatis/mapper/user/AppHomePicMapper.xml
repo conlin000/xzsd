@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.homePagePic.dao.HomePicDao">
+
+
+    <!--APP首页轮播图查询-->
+    <select id="homePicWithList" resultType="com.xzsd.app.user.homePagePic.entity.ImagesWithListVO">
+        select
+          image_code as imageCode,
+          image_path as imagePath,
+          goods_code as goodsCode,
+          sort_no as sortNo
+        from t_sys_home_page_pic
+        where is_deleted = 0
+          and image_state = 1
+        order by sort_no
+    </select>
+
+
+    <!--APP首页热品位商品查询-->
+    <select id="hotCommodityWithList" resultType="com.xzsd.app.user.homePagePic.entity.HotCommodityListVO">
+        select
+          g.goods_images  as imagePath,
+          g.goods_name    as goodsName,
+          g.selling_price as sellingPrice,
+          hot.goods_code  as goodsCode,
+          hot.hot_commodity_id  as hotCommodityID,
+          hot.hot_sort_no as hotSortNo,
+          hot.version as version
+        from
+          t_sys_hot_commodities as hot,
+          t_sys_goods as g
+        where
+          hot.is_deleted = 0
+          and g.is_deleted = 0
+          and hot.goods_code = g.goods_code
+        order by hot.hot_sort_no
+    </select>
+</mapper>

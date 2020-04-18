@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.driver.dao.DriverDao">
+
+
+
+    <!--新增门店：省市区地级选择列表查询-->
+    <select id="placeChoosing" resultType="com.xzsd.pc.driver.entity.PlaceVO">
+        select
+        place_code  as palceCode,
+        place_level as placeLevel,
+        place_name  as placeName,
+        parent_place_code as  parentPlaceCode
+        from t_sys_place
+        where is_deleted = 0
+        and place_level = #{placeLevel}
+        <if test="parentPlaceCode != null and parentPlaceCode != ''">
+            and parent_place_code = #{parentPlaceCode}
+        </if>
+    </select>
+
+
+    <!--用户账号查重-->
+    <select id="checkUserAccount" resultType="int">
+        select
+          count(user_acct)
+        from
+          t_sys_user
+        where is_deleted = 0
+          and user_acct = #{userAccount}
+    </select>
+
+    <!--司机新增（user表）-->
+    <insert id="addDriverToUserTable">
+        insert into t_sys_user
+        (
+          user_code,
+          user_name,
+          user_acct,
+          user_pwd,
+          phone,
+          id_card,
+          role,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        values
+        (
+          #{driverCode},
+          #{userName},
+          #{userAccount},
+          #{password},
+          #{phone},
+          #{idCard},
+          2,
+          0,
+          #{creator},
+          now(),
+          0
+        )
+    </insert>
+
+    <!--司机新增（司机表）-->
+    <insert id="addDriver">
+        insert into t_sys_driver
+        (
+          driver_code,
+          user_name,
+          user_acct,
+          phone,
+          user_pwd,
+          id_card,
+          province,
+          city,
+          state,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        values
+        (
+          #{driverCode},
+          #{userName},
+          #{userAccount},
+          #{phone},
+          #{password},
+          #{idCard},
+          #{provinceCode},
+          #{cityCode},
+          #{stateCode},
+          0,
+          #{creator},
+          now(),
+          0
+        )
+    </insert>
+
+
+    <!--司机删除-->
+    <update id="removeDriver">
+        update
+          t_sys_driver as d,
+          t_sys_user  as u
+        set
+          u.is_deleted = 1,
+          u.last_modified_by = #{userId},
+          u.modified_time = now(),
+          u.version = u.version + 1,
+          d.is_deleted = 1,
+          d.last_modified_by = #{userId},
+          d.modified_time = now(),
+          d.version = d.version + 1
+        where
+        d.driver_code = u.user_code
+        and d.driver_code in
+        <foreach collection="driverCode.split(',')" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+
+
+    <!--司机信息修改-->
+    <update id="updateDriver">
+        update
+          t_sys_driver as d,
+          t_sys_user as u
+        set
+        <if test="userName != null and userName != ''">
+            d.user_name = #{userName},
+            u.user_name = #{userName},
+        </if>
+        <if test="password != null and password != ''">
+            d.user_pwd = #{password},
+            u.user_pwd = #{password},
+        </if>
+        <if test="phone != null and phone != ''">
+            d.phone = #{phone},
+            u.phone = #{phone},
+        </if>
+        <if test="provinceCode != null and provinceCode != ''">
+            d.province = #{provinceCode},
+        </if>
+        <if test="cityCode != null and cityCode != ''">
+            d.city = #{cityCode},
+        </if>
+        <if test="stateCode != null and stateCode != ''">
+            d.state = #{stateCode},
+        </if>
+            d.last_modified_by = #{modifiedBy},
+            d.modified_time = now(),
+            d.version = d.version + 1,
+            u.last_modified_by = #{modifiedBy},
+            u.modified_time = now(),
+            u.version = u.version + 1
+        where d.is_deleted = 0
+          and d.version = #{version}
+          and d.driver_code = #{driverCode}
+          and u.user_code = #{driverCode}
+    </update>
+
+
+    <!--司机信息详情查询-->
+    <select id="queryDriver" resultType="com.xzsd.pc.driver.entity.QueryDriverVO">
+      select
+        driver_code  as driverCode,
+        user_name    as userName,
+        user_acct    as userAccount,
+        invite_code  as inviteCode,
+        phone     as phone,
+        user_pwd  as password,
+        id_card   as idCard,
+        province  as provinceCode,
+        city    as cityCode,
+        state   as stateCode,
+        version as version
+      from t_sys_driver
+      where is_deleted = 0
+        and driver_code = #{driverCode}
+    </select>
+
+
+
+    <!--司机(列表)查询-->
+    <select id="driverWithList" resultType="com.xzsd.pc.driver.entity.DriverWithListVO">
+      select
+        driver_code as driverCode,
+        user_name   as userName,
+        invite_code as inviteCode,
+        phone     as phone,
+        id_card   as idCard,
+        user_acct as userAccount,
+        version   as version
+      from t_sys_driver
+      where is_deleted = 0
+        <if test="userName != null and userName != ''">
+            and user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="provinceCode != null and provinceCode != ''">
+            and province = #{provinceCode}
+        </if>
+        <if test="cityCode != null and cityCode != ''">
+            and city = #{cityCode}
+        </if>
+        <if test="stateCode != null and stateCode != ''">
+            and state = #{stateCode}
+        </if>
+        order by create_time desc
+
+    </select>
+    
+</mapper>

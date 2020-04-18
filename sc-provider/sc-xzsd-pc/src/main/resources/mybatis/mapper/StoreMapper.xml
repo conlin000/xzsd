@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.store.dao.StoreDao">
+
+
+    <!--店长查重-->
+    <select id="checkUserCode" resultType="int">
+        select
+          count(user_code)
+        from t_sys_store
+        where is_deleted = 0
+          and user_code = #{userCode}
+    </select>
+
+    <!--新增门店 ==> 校验店长身份-->
+    <select id="checkStoreMan" resultType="int">
+        select
+          count(user_code)
+        from t_sys_user
+        where is_deleted = 0
+          and user_code = #{userCode}
+          and role = 1
+    </select>
+
+    <!--新增门店：省市区地级选择列表查询-->
+    <select id="placeChoosing" resultType="com.xzsd.pc.store.entity.PlaceVO">
+        select
+          place_code  as palceCode,
+          place_level as placeLevel,
+          place_name  as placeName,
+          parent_place_code as parentPlaceCode
+        from t_sys_place
+        where is_deleted = 0
+          and place_level = #{placeLevel}
+          <if test="parentPlaceCode != null and parentPlaceCode != ''">
+              and parent_place_code = #{parentPlaceCode}
+          </if>
+    </select>
+
+    <!--新增门店 ==> 营业编码查重-->
+    <select id="checkLicenseCode" resultType="int">
+        select
+          count(business_license_code)
+        from t_sys_store
+        where is_deleted = 0
+          and business_license_code = #{licenseCode}
+    </select>
+
+    <!--找地名-->
+    <select id="getStoreAddress" parameterType="com.xzsd.pc.store.entity.StoreInfo" resultType="java.lang.String">
+        select
+          concat(prov.place_name, city.place_name, state.place_name, #{addressDetails})
+        from
+          t_sys_place as prov,
+          t_sys_place as city,
+          t_sys_place as state
+        where
+          prov.is_deleted = 0
+          and city.is_deleted = 0
+          and state.is_deleted = 0
+          and prov.place_code = #{provinceCode}
+          and city.place_code = #{cityCode}
+          and state.place_code = #{stateCode}
+    </select>
+
+    <!--新增门店-->
+    <insert id="addStore">
+        insert into t_sys_store
+        (
+          store_code,
+          store_name,
+          user_code,
+          user_acct,
+          user_name,
+          phone,
+          business_license_code,
+          store_addr,
+          invite_code,
+          province,
+          city,
+          state,
+          address_details,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        (
+          select
+              #{storeCode},
+              #{storeName},
+              #{userCode},
+              user_acct,
+              user_name,
+              phone,
+              #{licenseCode},
+              #{storeAddress},
+              #{inviteCode},
+              #{provinceCode},
+              #{cityCode},
+              #{stateCode},
+              #{addressDetails},
+              0,
+              #{creator},
+              now(),
+              0
+          from
+            t_sys_user
+          where
+            is_deleted = 0
+            and user_code = #{userCode}
+        )
+    </insert>
+
+
+    <!--删除门店-->
+    <update id="removeStore">
+        update t_sys_store
+        set
+          is_deleted = 1,
+          last_modified_by = #{userId},
+          modified_time = now(),
+          version = version + 1
+        where store_code in 
+        <foreach collection="storeCode" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+
+
+    <!--修改门店信息-->
+    <update id="updateStore">
+        update t_sys_store
+        set
+        <if test="storeName != null and storeName != ''">
+            store_name = #{storeName},
+        </if>
+        <if test="userCode != null and userCode != ''">
+            user_code = #{userCode},
+        </if>
+        <if test="phone != null and phone != ''">
+            phone = #{phone},
+        </if>
+        <if test="licenseCode != null and licenseCode != ''">
+            business_license_code = #{licenseCode},
+        </if>
+        <if test="provinceCode != null and provinceCode != ''">
+            province = #{provinceCode},
+        </if>
+        <if test="cityCode != null and cityCode != ''">
+            city = #{cityCode},
+        </if>
+        <if test="stateCode != null and stateCode != ''">
+            state = #{stateCode},
+        </if>
+        <if test="addressDetails != null and addressDetails != ''">
+            address_details = #{addressDetails},
+        </if>
+        <if test="storeAddress != null and storeAddress != ''">
+            store_addr = #{storeAddress},
+        </if>
+        last_modified_by = #{creator},
+        modified_time = now(),
+        version = version + 1
+        where is_deleted = 0
+          and store_code = #{storeCode}
+          and version = #{version}
+    </update>
+
+
+    <!--门店详情查询-->
+    <select id="queryStore" resultType="com.xzsd.pc.store.entity.QueryStoreVO">
+        select
+          s.store_code  storeCode,
+          s.store_name  storeName,
+          s.phone phone,
+          s.user_code  userCode,
+          u.user_acct  userAccount,
+          s.business_license_code  licenseCode,
+          s.store_addr  storeAddress,
+          s.province  provinceCode,
+          s.city  cityCode,
+          s.state  stateCode,
+          s.invite_code  inviteCode,
+          s.address_details  addressDetails,
+          s.version  version
+        from
+          t_sys_store s,
+          t_sys_user u
+        where s.is_deleted = 0
+          and s.store_code = #{storeCode}
+          and s.user_code = u.user_code
+
+    </select>
+
+
+    <!--门店(列表)查询-->
+    <select id="storeWithList" resultType="com.xzsd.pc.store.entity.StoreWithListVO">
+        select
+          s.store_code storeCode,
+          s.store_name storeName,
+          s.phone  phone,
+          s.address_details  addressDetails,
+          u.user_name  userName,
+          s.invite_code  inviteCode
+        from
+           t_sys_store s,
+           t_sys_user u
+        where s.is_deleted = 0
+          and s.user_code = u.user_code
+          <if test="storeCode != null and storeCode != ''">
+              and s.store_code = #{storeCode}
+          </if>
+          <if test="storeName != null and storeName != ''">
+              and s.store_name like concat('%', #{storeName}, '%')
+          </if>
+          <if test="userName != null and userName != ''">
+              and u.user_name like concat('%', #{userName}, '%')
+          </if>
+          <if test="provinceCode != null and provinceCode != ''">
+              and s.province = #{provinceCode}
+          </if>
+          <if test="cityCode != null and cityCode != ''">
+              and s.city = #{cityCode}
+          </if>
+          <if test="stateCode != null and stateCode != ''">
+              and s.state = #{stateCode}
+          </if>
+        order by s.create_time desc
+
+    </select>
+
+</mapper>

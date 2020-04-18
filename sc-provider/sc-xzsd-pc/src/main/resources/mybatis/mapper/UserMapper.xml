@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.user.dao.UserDao">
+
+    <!-- 统计用户账号数量 -->
+    <select id="countUserAccount" resultType="int">
+        select count(user_acct)
+        from t_sys_user
+        where is_deleted = 0
+          and user_acct = #{userAccount}
+    </select>
+
+    <!-- 新增用户 -->
+    <insert id="addUser" >
+        insert into t_sys_user
+        (
+          user_code,
+          user_name,
+          user_acct,
+          user_pwd,
+          sex,
+          email,
+          phone,
+          id_card,
+          role,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        values
+        (
+          #{userId},
+          #{userName},
+          #{userAccount},
+          #{password},
+          #{sex},
+          #{email},
+          #{phone},
+          #{idCard},
+          #{userRole},
+          0,
+          #{creator},
+          now(),
+          0
+        )
+    </insert>
+
+    <!-- 用户（列表）查询 -->
+    <select id="usersWithList" resultType="com.xzsd.pc.user.entity.UserWithListVO">
+        select
+        user_code as userId,
+        user_name as userName,
+        user_acct as userAccount,
+        role as userRole,
+        sex as sex,
+        phone as phone,
+        email as email,
+        id_card as idCard,
+        version as version
+        from t_sys_user
+        where is_deleted = 0
+        <if test="userRole == null">
+            and role in(0,1,2)
+        </if>
+        <if test="userAccount != null and userAccount != ''">
+            and user_acct like concat('%', #{userAccount}, '%')
+        </if>
+        <if test="userName != null and userName != ''">
+            and user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="userRole != null">
+            and role = #{userRole}
+        </if>
+        order by create_time desc
+
+    </select>
+
+    <!-- 用户详情查询 -->
+    <select id="queryUser" parameterType="java.lang.String" resultType="com.xzsd.pc.user.entity.QueryUserVO">
+        select
+          user_code as userId,
+          user_name as userName,
+          user_acct as userAccount,
+          user_pwd as password,
+          sex as sex,
+          phone as phone,
+          email as email,
+          image_path as imagePath,
+          version as version
+        from t_sys_user
+        where user_code = #{userId}
+          and is_deleted = 0
+    </select>
+
+    <!-- 删除用户 -->
+    <update id="removeUser" parameterType="com.xzsd.pc.user.entity.UserInfo">
+        update t_sys_user
+        set
+          is_deleted = 1,
+          modified_time = now(),
+          last_modified_by = #{userId},
+          version = version + 1
+        where user_code in
+          <foreach item="item" index="index" collection="listCode" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </update>
+
+
+    <!-- 修改用户 -->
+    <update id="updateUser" parameterType="com.xzsd.pc.user.entity.UserInfo">
+        update t_sys_user
+        set
+           <if test="userName != null and userName != ''">
+               user_name = #{userName},
+           </if>
+           <if test="userAccount != null and userAccount != ''">
+               user_acct = #{userAccount},
+           </if>
+           <if test="sex != null and sex != ''">
+               sex = #{sex},
+           </if>
+           <if test="phone != null and phone != ''">
+               phone = #{phone},
+           </if>
+           <if test="email != null and email != ''">
+               email = #{email},
+           </if>
+           <if test="imagePath != null and imagePath != ''">
+                image_path = #{imagePath},
+           </if>
+           modified_time = now(),
+           last_modified_by = #{userId},
+           version = version + 1
+        where is_deleted = 0
+          and user_code =  #{userId}
+          and version = #{version}
+</update>
+
+
+
+
+
+</mapper>

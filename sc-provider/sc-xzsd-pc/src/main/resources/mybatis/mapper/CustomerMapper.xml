@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.customer.dao.CustomerDao">
+
+    <select id="customerWithList" resultType="com.xzsd.pc.customer.entity.CustomerInfo">
+        select
+          u.user_acct as userAccount,
+          u.user_name as userName,
+          u.sex   as sex,
+          u.phone as phone,
+          u.email as email,
+          u.id_card as idCard
+        from
+        <if test="userRole == 1">
+          t_sys_user as u,
+          (
+            select
+              invite_code
+            from
+              t_sys_store
+            where
+              is_deleted = 0
+            and user_code = #{currentUserCode}
+          ) as s
+        </if>
+        <if test="userRole == 0">
+          t_sys_user as u
+        </if>
+        where u.is_deleted = 0
+          <if test="userRole == 1">
+            and u.role in(2, 3)
+            and u.invite_code = s.invite_code
+          </if>
+          <if test="userName != null and userName != ''">
+            and u.user_name like concat('%', #{userName}, '%')
+          </if>
+          <if test="userAccount != null and userAccount != ''">
+            and u.user_acct like concat('%', #{userAccount}, '%')
+          </if>
+    </select>
+
+</mapper>

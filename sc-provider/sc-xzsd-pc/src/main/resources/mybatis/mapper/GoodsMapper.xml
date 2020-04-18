@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.goods.dao.GoodsDao">
+
+    <!-- 检查书名 -->
+    <select id="checkBookName" resultType="int">
+        select
+          count(goods_name)
+        from t_sys_goods
+        where is_deleted = 0
+          and goods_name = #{goodsName}
+    </select>
+
+    <!--检查ISB-->
+    <select id="checkISBN" resultType="int">
+        select
+          count(isbn_number)
+        from
+          t_sys_goods
+        where
+          is_deleted = 0
+          and isbn_number = #{isbnNum}
+    </select>
+
+    <!-- 新增商品 -->
+    <insert id="addGoods">
+        insert into t_sys_goods
+        (
+          goods_code,
+          goods_name,
+          isbn_number,
+          fir_class_code,
+          sec_class_code,
+          advertisement,
+          press,
+          author,
+          books_introduction,
+          stock,
+          sales,
+          goods_score,
+          views,
+          goods_state,
+          cost_price,
+          selling_price,
+          goods_Images,
+          on_selling_time,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        values
+        (
+          #{goodsCode},
+          #{goodsName},
+          #{isbnNum},
+          #{firClassCode},
+          #{secClassCode},
+          #{advertisement},
+          #{press},
+          #{author},
+          #{booksIntroduction},
+          #{stock},
+          0,
+          0,
+          0,
+          3,
+          #{costPrice},
+          #{sellingPrice},
+          #{goodsImages},
+          #{onSellingTime},
+          0,
+          #{creator},
+          now(),
+          0
+        )
+    </insert>
+
+
+    <!-- 删除商品 -->
+    <update id="removeGoods">
+        update t_sys_goods
+        set
+          is_deleted = 1,
+          modified_time = now(),
+          version = version + 1
+        where goods_code in
+          <foreach item="item" index="index" collection="goodsCodeList"  open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </update>
+
+    <!--检查商品是否可删除-->
+    <select id="checkGoods" resultType="int">
+        select
+          hp.cnt + hc.cnt
+        from
+          (
+              select
+                count(g.goods_code) as cnt
+              from
+                t_sys_home_page_pic as hp,
+                t_sys_goods as g
+              where
+                g.goods_code = hp.goods_code
+                and hp.is_deleted = 0
+                and hp.image_state = 1
+                and g.goods_code in
+                <foreach collection="goodsCodeList" index="index" item="item" open="(" separator="," close=")">
+                  #{item}
+                </foreach>
+          ) as hp,
+          (
+              select
+                count(g.goods_code) as cnt
+              from
+                t_sys_goods as g,
+                t_sys_hot_commodities as hc
+              where
+                g.goods_code = hc.goods_code
+                and hc.is_deleted = 0
+                and g.goods_code in
+                <foreach collection="goodsCodeList" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+          ) as hc
+    </select>
+
+
+    <!-- 商品（列表）查询 -->
+    <select id="goodsWithList" resultType="com.xzsd.pc.goods.entity.GoodsWithListVO">
+        select
+            g.goods_code as goodsCode,
+            g.goods_name as goodsName,
+            g.cost_price as costPrice,
+            fir.class_name  as firClassName,
+            sec.class_name  as secClassName,
+            g.sales  as sales,
+            g.author as author,
+            g.advertisement as advertisement,
+            g.books_introduction as booksIntroduction,
+            g.goods_state as goodsState,
+            g.on_selling_time as onSellingTime,
+            g.views as views,
+            g.stock as stock,
+            g.press as press,
+            g.isbn_number as isbnNum,
+            g.version as version
+        from
+          t_sys_goods as g,
+          t_sys_catalogue_management as fir,
+          t_sys_catalogue_management as sec
+        where
+          g.is_deleted = 0
+          and fir.is_deleted = 0
+          and sec.is_deleted = 0
+          and g.fir_class_code = fir.class_code
+          and g.sec_class_code = sec.class_code
+        <if test="goodsName != null and goodsName != ''">
+            and g.goods_name like concat('%', #{goodsName}, '%')
+        </if>
+        <if test="goodsState != null and goodsState != ''">
+            and g.goods_state = #{goodsState}
+        </if>
+        <if test="advertisement != null and advertisement != ''">
+            and g.advertisement like concat('%', #{advertisement}, '%')
+        </if>
+        <if test="press != null and press != ''">
+            and g.press like concat('%', #{press}, '%')
+        </if>
+        <if test="author!= null and author != ''">
+            and g.author like concat('%', #{author}, '%')
+        </if>
+
+    </select>
+
+    <!-- 商品详情查询 -->
+    <select id="queryGoods" resultType="com.xzsd.pc.goods.entity.QueryGoodsVO">
+        select
+          g.goods_code as goodsCode,
+          g.goods_name     as goodsName,
+          g.isbn_number    as isbnNum,
+          g.fir_class_code as firClassCode,
+          fir.class_name as firClassName,
+          sec_class_code as secClassCode,
+          sec.class_name as secClassName,
+          g.press  as press,
+          g.author as author,
+          g.books_introduction as booksIntroduction,
+          g.stock  as stock,
+          g.cost_price    as costPrice,
+          g.selling_price as sellingPrice,
+          g.version as version
+        from
+          t_sys_goods as g,
+          t_sys_catalogue_management as fir,
+          t_sys_catalogue_management as sec
+        where g.is_deleted = 0
+          and g.goods_code = #{goodsCode}
+          and g.fir_class_code = fir.class_code
+          and g.sec_class_code = sec.class_code
+    </select>
+
+
+    <!-- 商品信息修改 -->
+    <update id="updateGoods">
+        update t_sys_goods
+          set
+          <if test="goodsName != null and goodsName != ''">
+              goods_name = #{goodsName},
+          </if>
+          <if test="firClassCode != null and firClassCode != ''">
+              fir_class_code = #{firClassCode},
+          </if>
+          <if test="secClassCode != null and secClassCode != ''">
+              sec_class_code = #{secClassCode},
+          </if>
+          <if test="press != null and press != ''">
+              press = #{press},
+          </if>
+          <if test="author != null and author != ''">
+              author = #{author},
+          </if>
+          <if test="booksIntroduction != null and booksIntroduction != ''">
+              books_introduction = #{booksIntroduction},
+          </if>
+          <if test="advertisement != null and advertisement != ''">
+              advertisement = #{advertisement},
+          </if>
+          <if test="stock != null and stock != ''">
+              stock = #{stock},
+          </if>
+          <if test="costPrice != null and costPrice != ''">
+              cost_price = #{costPrice},
+          </if>
+          <if test="sellingPrice != null and sellingPrice != ''">
+              selling_price   = #{sellingPrice},
+          </if>
+          <if test="goodsImages != null and goodsImages != ''">
+              goods_Images    = #{goodsImages},
+          </if>
+            last_modified_by = #{modifiedBy},
+            modified_time = now(),
+            version = version + 1
+        where is_deleted = 0
+          and goods_code = #{goodsCode}
+          and version = #{version}
+    </update>
+
+    <!-- 修改商品状态 -->
+    <update id="changeGoodsState" >
+        update t_sys_goods
+          set
+            goods_state = #{goodsState},
+            last_modified_by = #{modifiedBy},
+            on_selling_time = now(),
+            modified_time = now(),
+            version = version + 1
+        where is_deleted = 0
+          and goods_code = #{goodsCode}
+          and version = #{version}
+
+
+    </update>
+
+    <!-- 一级分类下拉查询 -->
+    <select id="firClassChoosing" resultType="com.xzsd.pc.goods.entity.ClassChooseVO">
+        select
+          class_name as className,
+          class_code as classCode,
+          class_level as classLevel
+        from t_sys_catalogue_management
+        where class_level = 1
+          and is_deleted = 0
+    </select>
+
+    <!-- 二级分类下拉查询 -->
+    <select id="secClassChoosing" resultType="com.xzsd.pc.goods.entity.ClassChooseVO">
+        select
+          class_name as className,
+          class_code as classCode,
+          class_level as classLevel
+        from t_sys_catalogue_management
+        where class_level = 2
+          and parent_class_code = #{parentClassCode}
+          and is_deleted = 0
+    </select>
+
+
+</mapper>

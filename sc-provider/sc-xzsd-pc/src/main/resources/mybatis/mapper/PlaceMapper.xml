@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.place.dao.PlaceDao">
+
+
+    <!--检查地方-->
+    <select id="checkPlace" resultType="int">
+       select
+        count(place_name)
+       from t_sys_place
+       where
+        is_deleted = 0
+        and place_level = #{placeLevel}
+        and place_name = #{placeName}
+        <if test="parentPlaceCode != null and parentPlaceCode != ''">
+            and parent_place_code = #{parentPlaceCode}
+        </if>
+    </select>
+
+
+    <!--新增地方-->
+    <insert id="addPlace">
+        insert into t_sys_place
+        (
+          place_code,
+          place_level,
+          place_name,
+          parent_place_code,
+          is_deleted,
+          version
+        )
+        values
+        (
+          #{palceCode},
+          #{placeLevel},
+          #{placeName},
+          #{parentPlaceCode},
+          0,
+          0
+        )
+    </insert>
+
+</mapper>

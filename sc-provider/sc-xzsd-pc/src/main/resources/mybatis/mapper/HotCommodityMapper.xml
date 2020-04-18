@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.hotCommodity.dao.HotCommodityDao">
+
+
+    <!--热门位排序号查询-->
+    <select id="checkHotSortNo" resultType="int">
+        select
+          count(hot_sort_no)
+        from t_sys_hot_commodities
+        where is_deleted = 0
+          and hot_sort_no = #{hotSortNo}
+    </select>
+
+
+    <!--热门位商品编号查询-->
+    <select id="checkGoodsCode" resultType="int">
+        select
+          count(goods_code)
+        from t_sys_hot_commodities
+        where is_deleted = 0
+          and goods_code = #{goodsCode}
+    </select>
+
+
+    <!-- 热门位商品位新增 -->
+    <insert id="addHotCommodity">
+        insert into t_sys_hot_commodities
+        (
+          hot_commodity_id,
+          hot_sort_no,
+          goods_code,
+          goods_name,
+          selling_price,
+          books_introduction,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        (
+          select
+              #{hotCommodityID},
+              #{hotSortNo},
+              #{goodsCode},
+              goods_name,
+              selling_price,
+              books_introduction,
+              0,
+              #{creator},
+              now(),
+              0
+          from t_sys_goods
+          where is_deleted = 0
+            and goods_code = #{goodsCode}
+        )
+
+    </insert>
+
+
+
+    <!-- 商品选择(分页查询) -->
+    <select id="goodsChoosing" resultType="com.xzsd.pc.homePagePic.entity.GoodsChoosingVO">
+        select
+        goods_code    as goodsCode,
+        goods_name    as goodsName,
+        goods_state   as goodsState,
+        fir_class_code as firClassCode,
+        sec_class_code as secClassCode
+        from t_sys_goods
+        where is_deleted = 0
+        <if test="goodsCode != null and goodsCode!=''">
+            and goods_code like concat('%', #{goodsCode}, '%')
+        </if>
+        <if test="goodsName != null and goodsName!=''">
+            and goods_name like concat('%', #{goodsName}, '%')
+        </if>
+    </select>
+
+
+
+    <!-- 热门位商品位删除 -->
+    <update id="removeHotCommodity" >
+        update t_sys_hot_commodities
+        set
+          hot_sort_no = 0,
+          is_deleted = 1,
+          last_modified_by = #{userId},
+          modified_time = now(),
+          version = version + 1
+        where hot_commodity_id in 
+          <foreach collection="hotCommodityID" index="index" item="item" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </update>
+
+
+    <!--热门位商品位修改 ==> 查询商品信息-->
+    <select id="getInfo" resultType="com.xzsd.pc.hotCommodity.entity.HotCommodityInfo">
+        select
+          goods_name  as goodsName,
+          selling_price as sellingPrice,
+          books_introduction as booksIntroduction
+        from
+          t_sys_goods
+        where
+          is_deleted = 0
+          and goods_code = #{goodsCode}
+    </select>
+
+    <!--热门位商品位修改-->
+    <update id="updateHotCommodity" parameterType="com.xzsd.pc.hotCommodity.entity.HotCommodityInfo">
+        update t_sys_hot_commodities
+        set
+        <if test="goodsCode != null and goodsCode != ''">
+            goods_code  = #{goodsCode},
+            goods_name  = #{goodsName},
+            selling_price = #{sellingPrice},
+            books_introduction = #{booksIntroduction},
+        </if>
+        <if test="hotSortNo != null and hotSortNo != ''">
+            hot_sort_no  = #{hotSortNo},
+        </if>
+          last_modified_by = #{modifiedBy},
+          modified_time = now(),
+          version = version + 1
+        where is_deleted = 0
+          and hot_commodity_id = #{hotCommodityID}
+          and version = #{version}
+    </update>
+
+
+
+    <!--热门位商品（列表）查询 + 展示数量修改-->
+    <select id="hotCommodityWithList" resultType="com.xzsd.pc.hotCommodity.entity.HotCommodityListVO">
+        select
+          hot_commodity_id as hotCommodityID,
+          hot_sort_no  as hotSortNo,
+          goods_code   as goodsCode,
+          goods_name   as goodsName,
+          selling_price  as sellingPrice,
+          books_introduction as booksIntroduction,
+          version as version
+        from t_sys_hot_commodities
+        where is_deleted = 0
+        <if test="goodsName != null and goodsName != ''">
+            and goods_name like concat('%', #{goodsName}, '%')
+        </if>
+
+        <if test="goodsCode != null and goodsCode != ''">
+            and goods_code like concat('%', #{goodsCode}, '%')
+        </if>
+        order by hot_sort_no
+
+    </select>
+</mapper>

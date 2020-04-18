@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.signUp.dao.SignUpDao">
+
+    <!--计算用户数量-->
+    <select id="countUserAccount" resultType="int">
+        select count(user_acct)
+        from t_sys_user
+        where is_deleted = 0
+          and user_acct = #{userAccount}
+    </select>
+
+    <!--校验邀请码-->
+    <select id="checkInviteCode" resultType="int">
+        select
+          count(invite_code)
+        from t_sys_store
+        where is_deleted = 0
+          and invite_code = #{inviteCode}
+    </select>
+
+    <!--app-用户端注册-->
+    <insert id="signUp">
+      insert into t_sys_user
+        (
+          user_code,
+          user_name,
+          user_acct,
+          user_pwd,
+          sex,
+          email,
+          phone,
+          id_card,
+          role,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        values
+        (
+          #{userCode},
+          #{userName},
+          #{userAccount},
+          #{password},
+          #{sex},
+          #{email},
+          #{phone},
+          #{idCard},
+          3,
+          0,
+          #{creator},
+          now(),
+          0
+        )
+    </insert>
+
+</mapper>
