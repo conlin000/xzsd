@@ -126,7 +126,7 @@
           version as version
         from t_sys_home_page_pic
         where is_deleted = 0
-        <if test="imageState != null and imageState != ''">
+        <if test="imageState != null">
             and image_state = #{imageState}
         </if>
     </select>

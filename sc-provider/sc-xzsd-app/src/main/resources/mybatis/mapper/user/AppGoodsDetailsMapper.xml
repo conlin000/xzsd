@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.goodsDetails.dao.GoodsDetailsDao">
+
+
+    <!--APP商品详情查询（点击跳转）-->
+    <select id="goodsDetails" resultType="com.xzsd.app.user.goodsDetails.entity.GoodsDetailsVO">
+       select
+        goods_Images as goodsImages,
+        goods_name   as goodsName,
+        books_introduction as booksIntroduction,
+        selling_price as sellingPrice,
+        goods_score as goodsScore
+      from t_sys_goods
+      where
+        is_deleted = 0
+        and goods_code = #{goodsCode}
+    </select>
+
+
+    <!--通过邀请码查询到达地-->
+    <select id="findStore" resultType="java.lang.String">
+        select
+          s.store_name
+        from
+          t_sys_store as s,
+          t_sys_user as u
+        where s.is_deleted = 0
+          and u.is_deleted = 0
+          and u.user_code = #{userCode}
+          and s.invite_code = u.invite_code
+    </select>
+
+
+    <!--更新浏览量-->
+    <update id="updateViews">
+        update t_sys_goods
+        set
+          views = views + 1
+        where
+          is_deleted = 0
+          and goods_code = #{goodsCode}
+    </update>
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.driver.me.dao.DriverMeDao">
+
+    <!--App司机端司机个人查询-->
+    <select id="queryDriver" resultType="com.xzsd.app.driver.me.entity.AppDriverInfo">
+        select
+          u.user_code as userCode,
+          u.image_path as imagePath,
+          d.driver_code as driverCode,
+          d.user_name as driverName,
+          d.phone as phone
+        from
+          t_sys_user as u
+        join
+          t_sys_driver as d
+        on
+          u.user_acct = d.user_acct
+        where
+          u.is_deleted = 0
+          and d.is_deleted = 0
+          and u.user_code = #{userCode}
+
+    </select>
+
+    <!--原密码查找-->
+    <select id="getPassword" resultType="java.lang.String">
+        select
+          user_pwd
+        from
+          t_sys_user
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </select>
+    <!--修改密码-->
+    <update id="updatePassword">
+        update
+          t_sys_user as u,
+          t_sys_driver as d
+        set
+          u.user_pwd = #{newPassword},
+          d.user_pwd = #{newPassword}
+        where
+          u.user_code = #{userId}
+          and d.driver_code = #{userId}
+    </update>
+
+    <!--app-司机端负责门店查询-->
+    <select id="queryStore" resultType="com.xzsd.app.driver.me.entity.AppDriverStoreVO">
+        select
+          s.store_code as storeCode,
+          s.store_name as storeName,
+          s.store_addr as storeAddress,
+          s.user_name  as userName,
+          s.phone      as phone
+        from
+          t_sys_store  as s,
+          t_sys_driver as d
+        where
+          s.is_deleted = 0
+          and d.is_deleted = 0
+          and d.invite_code = s.invite_code
+          and d.driver_code = #{userCode}
+    </select>
+
+
+    <!--&lt;!&ndash;app-司机端负责门店查询 ==> 门店地址查询&ndash;&gt;-->
+    <!--<select id="getStoreAddress" resultType="java.lang.String">-->
+        <!--select-->
+          <!--concat(addr.p, addr.c, addr.s)-->
+        <!--from-->
+          <!--(select-->
+            <!--p.place_name as p,-->
+            <!--c.place_name as c,-->
+            <!--s.place_name as s-->
+          <!--from-->
+            <!--t_sys_store as s,-->
+            <!--t_sys_place as prov,-->
+            <!--t_sys_place as city,-->
+            <!--t_sys_place as state-->
+          <!--where-->
+            <!--s.province = p1.place_code-->
+            <!--and s.city = p2.place_code-->
+            <!--and s.state = p3.place_code-->
+            <!--and s.store_code = #{storeCode}) as addr-->
+    <!--</select>-->
+</mapper>
+
+

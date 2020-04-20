@@ -21,4 +21,15 @@ public class PasswordUtils {
         return bCryptPasswordEncoder.encode(rawPassword);
     }
 
+
+    /**
+     * 判断输入的密码是否与原密码匹配
+     *
+     * & 参数：rawPassword   输入的原密码
+     * & 参数：encodedPassword  数据库里的密码
+     */
+    public static boolean isOk (String rawPassword, String encodedPassword){
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        return bCryptPasswordEncoder.matches(rawPassword, encodedPassword);
+    }
 }

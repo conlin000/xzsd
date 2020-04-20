@@ -159,7 +159,7 @@
         <if test="goodsName != null and goodsName != ''">
             and g.goods_name like concat('%', #{goodsName}, '%')
         </if>
-        <if test="goodsState != null and goodsState != ''">
+        <if test="goodsState != null">
             and g.goods_state = #{goodsState}
         </if>
         <if test="advertisement != null and advertisement != ''">

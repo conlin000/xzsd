@@ -6,7 +6,7 @@ package com.xzsd.pc.store.entity;
 public class PlaceVO {
 
     // 地级编号
-    private String palceCode;
+    private String placeCode;
 
     // 父地级编号
     private String parentPlaceCode;
@@ -21,12 +21,14 @@ public class PlaceVO {
     /**
      * setter & getter
      */
-    public String getPalceCode() {
-        return palceCode;
+
+
+    public String getPlaceCode() {
+        return placeCode;
     }
 
-    public void setPalceCode(String palceCode) {
-        this.palceCode = palceCode;
+    public void setPlaceCode(String placeCode) {
+        this.placeCode = placeCode;
     }
 
     public String getParentPlaceCode() {

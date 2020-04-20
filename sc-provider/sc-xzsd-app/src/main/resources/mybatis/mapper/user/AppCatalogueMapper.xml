@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.catalogue.dao.ClassDao">
+
+
+    <!--一级分类查询-->
+    <select id="firClass" resultType="com.xzsd.app.user.catalogue.entity.FirClassVO">
+        select
+          class_code as firClassCode,
+          class_name as className,
+          class_level as classLevel
+        from t_sys_catalogue_management
+        where is_deleted = 0
+          and class_level = 1
+    </select>
+
+
+    <!--配置二级分类商品查询resultMap-->
+    <resultMap id="secClassGoodsMap" type="com.xzsd.app.user.catalogue.entity.SecClassVO">
+        <id property="secClassCode"        column="classCode"></id>
+        <result property="parentClassCode" column="parentClassCode"></result>
+        <result property="className"       column="className"></result>
+        <result property="classLevel"      column="classLevel"></result>
+        <!---->
+        <collection property="secClassGoodsVO" ofType="com.xzsd.app.user.catalogue.entity.ViewCommodityVO">
+            <id property="goodsCode"        column="goodsCode"></id>
+            <result property="goodsName"    column="goodsName"></result>
+            <result property="sellingPrice" column="sellingPrice"></result>
+            <result property="imagePath"    column="imagePath"></result>
+        </collection>
+    </resultMap>
+    <!--二级分类商品查询-->
+    <select id="secClass" resultMap="secClassGoodsMap">
+       select
+        c.parent_class_code as parentClassCode,
+        c.class_code as classCode,
+        c.class_name as className,
+        c.class_level as classLevel,
+        g.goods_code as goodsCode,
+        g.goods_name as goodsName,
+        g.selling_price as sellingPrice,
+        g.goods_Images as imagePath
+      from
+        t_sys_catalogue_management as c
+      join
+        t_sys_goods as g
+      on
+        g.is_deleted = 0
+        and c.class_code = g.sec_class_code
+        and g.fir_class_code = #{parentClassCode}
+      where c.is_deleted = 0
+        and c.class_level = 2
+        and c.parent_class_code = #{parentClassCode}
+    </select>
+
+</mapper>

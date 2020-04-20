@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.me.dao.MeDao">
+
+    <!--原密码查找-->
+    <select id="getPassword" resultType="java.lang.String">
+        select
+          user_pwd
+        from
+          t_sys_user
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </select>
+    <!--修改密码-->
+    <update id="updatePassword">
+        update t_sys_user
+        set
+          user_pwd = #{newPassword}
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </update>
+
+
+    <!--邀请码匹配查找-->
+    <select id="checkInviteCode" resultType="int">
+        select
+          count(invite_code)
+        from t_sys_store
+        where
+          is_deleted = 0
+          and invite_code = #{inviteCode}
+    </select>
+    <!--修改邀请码-->
+    <update id="updateInviteCode">
+        update t_sys_user
+        set
+          invite_code = #{inviteCode}
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </update>
+
+</mapper>

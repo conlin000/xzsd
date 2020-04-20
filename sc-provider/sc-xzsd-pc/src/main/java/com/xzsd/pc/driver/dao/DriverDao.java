@@ -14,7 +14,7 @@ import java.util.List;
 public interface DriverDao {
 
     /**
-     * 用户账号查重
+     * 新增：用户账号查重
      * @description 查询用户是否存在，若存在应该返回“1”
      * @function checkUserAccount
      * @param userAccount
@@ -36,6 +36,20 @@ public interface DriverDao {
      */
     List<PlaceVO> placeChoosing(PlaceVO placeVO);
 
+
+    /**
+     * 新增--查询店铺邀请码
+     * @description 查询店铺邀请码
+     * @function getInviteCode
+     * @param userCode
+     * @type&return int
+     * @author Conlin
+     * @date
+     */
+    String getInviteCode(String userCode);
+
+
+
     /**
      * 司机新增（user表）
      * @description 司机新增，新增进user表
@@ -48,7 +62,7 @@ public interface DriverDao {
     int addDriverToUserTable(DriverInfo driverInfo);
 
     /**
-     * 司机新增
+     * 司机新增(driver表)
      * @description 司机新增，新增进司机表
      * @function addDriver
      * @param driverInfo
@@ -93,7 +107,7 @@ public interface DriverDao {
      * @author Conlin
      * @date
      */
-    QueryDriverVO queryDriver(String driverCode);
+    List<QueryDriverVO> queryDriver(String driverCode);
 
 
 

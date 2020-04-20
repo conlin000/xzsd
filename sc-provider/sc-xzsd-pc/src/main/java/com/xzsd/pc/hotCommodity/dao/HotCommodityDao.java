@@ -13,7 +13,7 @@ public interface HotCommodityDao {
 
 
     /**
-     * 热门位排序号查询
+     * 热门位排序号查重
      * @description 热门位排序号查询，若不存在应返回“0”
      * @function checkHotSortNo
      * @tpye&return int
@@ -21,7 +21,7 @@ public interface HotCommodityDao {
      * @author Conlin
      * @date
      */
-        int checkHotSortNo(String hotSortNo);
+        int checkHotSortNo(int hotSortNo);
 
 
     /**
@@ -60,7 +60,6 @@ public interface HotCommodityDao {
     int addHotCommodity(HotCommodityInfo hotCommodityInfo);
 
 
-
     /**
      * 热门位商品位删除
      * @description 热门位商品位删除
@@ -94,6 +93,17 @@ public interface HotCommodityDao {
      * @date
      */
     int updateHotCommodity(HotCommodityInfo hotCommodityInfo);
+
+    /**
+     * 热门位商品位修改 ==> 交换
+     * @description 热门位商品位修改，查询被替换的热门位Id和序号和版本号
+     * @function getSomething
+     * @tpye&return HotCommodityInfo
+     * @param hotCommodityInfo
+     * @author Conlin
+     * @date
+     */
+    HotCommodityInfo getSomething(HotCommodityInfo hotCommodityInfo);
 
 
 

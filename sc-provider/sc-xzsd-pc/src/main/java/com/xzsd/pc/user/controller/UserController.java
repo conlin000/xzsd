@@ -134,9 +134,7 @@ public class UserController {
      */
     @PostMapping("updateUser")
     public AppResponse updateUser(UserInfo userInfo){
-
         try {
-
             return userService.updateUser(userInfo);
         }catch (Exception e) {
             logger.error("修改用户信息错误", e);

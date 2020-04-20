@@ -12,7 +12,7 @@ public class HotCommodityInfo {
     private String hotCommodityID;
 
     // 热门位排序号：0-无排序
-    private String hotSortNo;
+    private Integer hotSortNo;
 
     // 商品编号
     private String goodsCode;
@@ -44,10 +44,10 @@ public class HotCommodityInfo {
     // 版本号
     private int version;
 
-    // 当前页码
+    // 当前页码（非数据库字段）
     private int pageNum;
 
-    // 一页的数据条数
+    // 一页的数据条数（非数据库字段）
     private int pageSize;
 
 
@@ -78,11 +78,11 @@ public class HotCommodityInfo {
         this.hotCommodityID = hotCommodityID;
     }
 
-    public String getHotSortNo() {
+    public Integer getHotSortNo() {
         return hotSortNo;
     }
 
-    public void setHotSortNo(String hotSortNo) {
+    public void setHotSortNo(Integer hotSortNo) {
         this.hotSortNo = hotSortNo;
     }
 
@@ -165,4 +165,5 @@ public class HotCommodityInfo {
     public void setVersion(int version) {
         this.version = version;
     }
+
 }

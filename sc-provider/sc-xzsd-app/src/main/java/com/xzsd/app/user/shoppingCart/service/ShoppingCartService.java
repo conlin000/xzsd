@@ -13,6 +13,7 @@ import com.xzsd.app.user.shoppingCart.entity.ShoppingCartSumPriceVO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,8 +40,10 @@ public class ShoppingCartService {
         String userId = SecurityUtils.getCurrentUserId();
         // 配置创建者
         shoppingCartInfo.setCreator(userId);
-        // 配置当前用户
+        // 配置当前用户编码和用户名称
         shoppingCartInfo.setUserCode(userId);
+        String userName = SecurityUtils.getCurrentUserUsername();
+        shoppingCartInfo.setUserName(userName);
         // 使用工具类生成购物车id
         String shoppingCartId = StringUtil.getCommonCode(2);
         // 配置购物车id
@@ -120,7 +123,11 @@ public class ShoppingCartService {
         for (ShoppingCartSumPriceVO s : shoppingCarts){
             sumPrice += s.getTotalPrice();
         }
-        return AppResponse.success("ok", "shoppingCartCount: " + shoppingCartCount + "," + "  &  " + "sumPrice: " + sumPrice);
+        // 包装
+        ShoppingCartSumPriceVO shoppingCartSumPriceVO = new ShoppingCartSumPriceVO();
+        shoppingCartSumPriceVO.setShoppingCartCount(shoppingCartCount);
+        shoppingCartSumPriceVO.setTotalPrice(sumPrice);
+        return AppResponse.success("ok", shoppingCartSumPriceVO);
     }
 
 

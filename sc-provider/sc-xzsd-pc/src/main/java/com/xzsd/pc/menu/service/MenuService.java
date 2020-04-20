@@ -121,7 +121,7 @@ public class MenuService {
      */
     public AppResponse queryMenu(String menuId){
 
-        QueryMenuVO menuInfo = menuDao.queryMenu(menuId);
+        List<QueryMenuVO> menuInfo = menuDao.queryMenu(menuId);
         return AppResponse.success("查询成功", menuInfo);
     }
 

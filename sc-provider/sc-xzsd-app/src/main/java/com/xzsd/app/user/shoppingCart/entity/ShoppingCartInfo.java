@@ -13,6 +13,9 @@ public class ShoppingCartInfo {
     // 用户编号
     private String userCode;
 
+    // 用户姓名
+    private String userName;
+
     // 商品编号
     private String goodsCode;
 
@@ -207,5 +210,13 @@ public class ShoppingCartInfo {
 
     public void setIsPaid(int isPaid) {
         this.isPaid = isPaid;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

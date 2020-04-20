@@ -118,6 +118,9 @@
            <if test="userAccount != null and userAccount != ''">
                user_acct = #{userAccount},
            </if>
+           <if test="password != null and password != ''">
+               user_pwd = #{password},
+           </if>
            <if test="sex != null and sex != ''">
                sex = #{sex},
            </if>

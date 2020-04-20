@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.order.dao.AppUserOrderDao">
+
+    <!--合计订单价格-->
+    <select id="getPriceByShoppingCart" resultType="float">
+        select
+            sum(total_price)
+        from
+          t_app_shopping_cart
+        where
+          is_deleted = 0
+          and shopping_cart_id in
+        <foreach collection="shoppingCartId" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <!--合计订单价格（立即购买下单）-->
+    <select id="getPriceByGoodsCode" resultType="float">
+        select
+          selling_price
+        from t_sys_goods
+        where is_deleted = 0
+          and goods_code = #{goodsCode}
+    </select>
+
+
+    <!--修改数据库信息-->
+    <update id="doUpdate">
+        update
+          t_app_shopping_cart as s,
+          t_sys_goods as g
+        set
+          s.is_paid = 1,
+          s.order_code = #{orderCode},
+          g.sales = g.sales + s.goods_count,
+          g.stock = g.stock - s.goods_count
+        where
+          s.shopping_cart_id in
+        <foreach collection="shoppingCartIdList" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+          and g.goods_code = s.goods_code
+    </update>
+
+    <!--app-用户端：订单新增 ==> 获得商品数量-->
+    <select id="getGoodsCount" resultType="java.lang.Integer">
+        select
+          goods_count
+        from
+          t_app_shopping_cart
+        where
+          shopping_cart_id in
+          <foreach collection="shoppingCartId" item="item" index="i" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </select>
+    <!--订单新增-->
+    <insert id="addOrder">
+        insert into t_sys_order
+        (
+          order_code,
+          total_price,
+          order_state,
+          payment_state,
+          shopping_cart_id,
+          goods_code,
+          goods_count,
+          user_code,
+          paid_date,
+          store_code,
+          user_name,
+          phone,
+          is_deleted,
+          creator,
+          create_time,
+          version
+        )
+        (
+           select
+              #{orderCode},
+              #{totalPrice},
+              1,
+              1,
+              #{shoppingCartId},
+              #{goodsCode},
+              #{goodsCount},
+              #{userCode},
+              now(),
+              s.store_code,
+              u.user_name,
+              u.phone,
+              0,
+              #{creator},
+              now(),
+              0
+           from
+            t_sys_user as u,
+            t_sys_store as s
+          where
+            u.is_deleted = 0
+            and s.is_deleted = 0
+            and u.user_code = #{userCode}
+            and u.invite_code = s.invite_code
+        )
+    </insert>
+
+
+    <!--“立即购买”：购物车新增-->
+    <insert id="addCart" >
+        insert into t_app_shopping_cart
+        (
+          shopping_cart_id,
+          user_code,
+          user_name,
+          goods_code,
+          goods_name,
+          image_path,
+          selling_price,
+          goods_count,
+          total_price,
+          is_paid,
+          is_deleted,
+          create_time,
+          version
+        )
+        (
+          select
+            #{shoppingCartId},
+            #{userCode},
+            #{userName},
+            #{goodsCode},
+            goods_name,
+            goods_Images,
+            selling_price,
+            #{goodsCount},
+            selling_price * #{goodsCount},
+            0,
+            0,
+            now(),
+            0
+          from t_sys_goods
+          where is_deleted = 0
+            and goods_code = #{goodsCode}
+        )
+    </insert>
+
+
+    <!--配置resultMap-->
+    <resultMap id="orderListMap" type="com.xzsd.app.user.order.entity.OrderListVO">
+        <id property="orderCode"        column="orderCode"></id>
+        <result property="userCode"       column="userCode"></result>
+        <result property="shoppingCartId" column="orderShoppingCartId"></result>
+        <result property="orderState"   column="orderState"></result>
+        <result property="paymentState" column="paymentState"></result>
+        <result property="goodsCount"   column="goodsCount"></result>
+        <result property="totalPrice"   column="totalPrice"></result>
+        <!---->
+        <collection property="shoppingCartList" javaType="list" ofType="com.xzsd.app.user.order.entity.ShoppingCartListVO"
+        select="selectShoppingCart" column="orderCode">
+            <id property="shoppingCartId" column="shoppingCartId"></id>
+            <result property="goodsCode" column="goodsCode"></result>
+            <result property="goodsName" column="goodsName"></result>
+            <result property="imagePath" column="imagePath"></result>
+            <result property="bookIntroduction" column="bookIntroduction"></result>
+            <result property="sellingPrice"     column="sellingPrice"></result>
+            <result property="goodsCount"       column="goodsCount"></result>
+            <result property="orderCode"        column="orderCode"></result>
+        </collection>
+    </resultMap>
+    <!--订单(列表)查询-->
+    <select id="ordersWithList" resultMap="orderListMap">
+        select
+          order_code as orderCode,
+          user_code as userCode,
+          shopping_cart_id as orderShoppingCartId,
+          payment_state as paymentState,
+          order_state as orderState,
+          goods_count as goodsCount,
+          total_price as totalPrice
+        from
+          t_sys_order
+        where
+          is_deleted = 0
+          and user_code = #{userCode}
+        <if test="orderState == 0 or orderState == 1">
+            and order_state in(0,1)
+        </if>
+        <if test="orderState == 2 or orderState == 3">
+            and order_state in(2,3)
+        </if>
+        <if test="paymentState == 1">
+            and payment_state = 1
+        </if>
+        order by create_time desc
+    </select>
+    <!---->
+    <select id="selectShoppingCart" resultType="com.xzsd.app.user.order.entity.ShoppingCartListVO">
+        select
+          s.shopping_cart_id as shoppingCartId,
+          s.goods_code as goodsCode,
+          s.goods_name as goodsName,
+          s.image_path as imagePath,
+          g.books_introduction as bookIntroduction,
+          s.selling_price as sellingPrice,
+          s.goods_count as goodsCount
+        from
+          t_app_shopping_cart as s,
+          t_sys_goods as g
+        where
+          g.is_deleted = 0
+          and s.is_deleted = 0
+          and s.is_paid = 1
+          and s.order_code = #{orderCode}
+          and s.goods_Code = g.goods_Code
+    </select>
+
+
+
+    <!--配置queryOrderMap-->
+    <resultMap id="queryOrderMap" type="com.xzsd.app.user.order.entity.QueryOrderVO">
+        <id property="orderCode" column="orderCode"></id>
+        <result property="storeCode" column="storeCode"></result>
+        <result property="goodsCount" column="orderGoodsCount"></result>
+        <result property="totalPrice" column="totalPrice"></result>
+        <result property="userCode" column="userCode"></result>
+        <result property="shoppingCartIdList" column="orderShoppingCartId"></result>
+        <result property="orderState" column="orderState"></result>
+        <result property="paymentState" column="paymentState"></result>
+        <result property="createTime" column="createTime"></result>
+
+        <collection property="shoppingCartList" javaType="list" ofType="com.xzsd.app.user.order.entity.ShoppingCartListVO">
+            <id property="shoppingCartId" column="shoppingCartId"></id>
+            <result property="goodsCode" column="goodsCode"></result>
+            <result property="goodsName" column="goodsName"></result>
+            <result property="imagePath" column="imagePath"></result>
+            <result property="bookIntroduction" column="bookIntroduction"></result>
+            <result property="sellingPrice" column="sellingPrice"></result>
+            <result property="goodsCount" column="goodsCount"></result>
+        </collection>
+    </resultMap>
+    <!--订单详情查询-->
+    <select id="queryOrder" resultMap="queryOrderMap">
+        select
+          o.order_code as orderCode,
+          o.user_code as userCode,
+          o.shopping_cart_id as orderShoppingCartId,
+          o.order_state as orderState,
+          o.payment_state as paymentState,
+          o.create_time as createTime,
+          s.shopping_cart_id as shoppingCartId,
+          s.goods_code as goodsCode,
+          s.goods_name as goodsName,
+          s.image_path as imagePath,
+          g.books_introduction as bookIntroduction,
+          s.selling_price as sellingPrice,
+          s.goods_count as goodsCount,
+          o.goods_count as orderGoodsCount,
+          o.total_price as totalPrice
+        from
+          t_sys_order as o
+        join
+          t_app_shopping_cart as s
+        on
+          o.user_code = s.user_code
+          and o.order_code = s.order_code
+          and s.is_deleted = 0
+          and s.is_paid = 1
+        join
+          t_sys_goods as g
+        on
+          g.goods_code = s.goods_code
+          and g.is_deleted = 0
+        where o.is_deleted = 0
+          and o.order_code = #{orderCode}
+          and o.user_code = #{userCode}
+        <if test="shoppingCartIdList != null and shoppingCartIdList != ''">
+            and s.shopping_cart_id in
+            (
+            <foreach collection="shoppingCartIdList.split(',')" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+    <!--app-用户端：订单详情查询 ==> 查找门店地址信息-->
+    <select id="getStoreInfo" resultType="com.xzsd.app.user.order.entity.QueryOrderVO">
+        select
+          s.store_code as storeCode,
+          s.store_name as storeName,
+          s.store_addr as storeAddress
+        from
+          t_sys_user as u,
+          t_sys_store as s
+        where
+          u.is_deleted = 0
+          and s.is_deleted = 0
+          and s.invite_code = u.invite_code
+          and u.user_code = #{userCode}
+    </select>
+
+
+</mapper>

@@ -108,9 +108,26 @@
           and goods_code = #{goodsCode}
     </select>
 
+    <!--热门位商品位修改，查询被替换的热门位Id和序号和版本号-->
+    <select id="getSomething" resultType="com.xzsd.pc.hotCommodity.entity.HotCommodityInfo">
+        select
+          h.hot_sort_no as hotSortNo,
+          h_copy.hot_commodity_id as hotCommodityID,
+          h_copy.version as version
+        from
+          t_sys_hot_commodities as h,
+          t_sys_hot_commodities as h_copy
+        where
+          h.is_deleted = 0
+          and h_copy.is_deleted = 0
+          and h_copy.hot_sort_no  = #{hotSortNo}
+          and h.hot_commodity_id = #{hotCommodityID}
+    </select>
+
     <!--热门位商品位修改-->
     <update id="updateHotCommodity" parameterType="com.xzsd.pc.hotCommodity.entity.HotCommodityInfo">
-        update t_sys_hot_commodities
+        update
+          t_sys_hot_commodities
         set
         <if test="goodsCode != null and goodsCode != ''">
             goods_code  = #{goodsCode},

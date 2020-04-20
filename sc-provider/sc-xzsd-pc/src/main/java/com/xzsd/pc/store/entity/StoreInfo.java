@@ -20,6 +20,9 @@ public class StoreInfo {
     // 店长账户
     private String userAccount;
 
+    // 店长名称
+    private String userName;
+
     // 店长手机
     private String phone;
 
@@ -230,5 +233,13 @@ public class StoreInfo {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

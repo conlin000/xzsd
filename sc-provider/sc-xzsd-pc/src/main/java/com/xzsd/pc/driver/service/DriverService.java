@@ -10,6 +10,7 @@ import com.xzsd.pc.driver.entity.DriverInfo;
 import com.xzsd.pc.driver.entity.DriverWithListVO;
 import com.xzsd.pc.driver.entity.PlaceVO;
 import com.xzsd.pc.driver.entity.QueryDriverVO;
+import com.xzsd.pc.utils.PasswordUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,11 @@ public class DriverService {
         String userId = SecurityUtils.getCurrentUserId();
         // 配置创建者
         driverInfo.setCreator(userId);
+        // 查询店铺邀请码并配置
+        driverInfo.setInviteCode(driverDao.getInviteCode(userId));
+        // 密码加密
+        String pwd = driverInfo.getPassword();
+        driverInfo.setPassword(PasswordUtils.generatePassword(pwd));
         // 加进user表
         int flagCount = driverDao.addDriverToUserTable(driverInfo);
         if (flagCount == 0){
@@ -99,7 +105,7 @@ public class DriverService {
         if (flagCount == 0){
             return AppResponse.bizError("删除失败");
         }
-        return AppResponse.bizError("删除成功");
+        return AppResponse.success("删除成功");
     }
 
 
@@ -140,7 +146,7 @@ public class DriverService {
      */
     public AppResponse queryDriver(String driverCode){
         // 司机信息详情查询
-        QueryDriverVO queryDriverVO =  driverDao.queryDriver(driverCode);
+        List<QueryDriverVO> queryDriverVO =  driverDao.queryDriver(driverCode);
         return AppResponse.success("查询成功", queryDriverVO);
     }
 

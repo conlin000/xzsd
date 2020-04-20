@@ -71,7 +71,7 @@ public interface MenuDao {
      * @author Conlin
      * @date
      */
-    QueryMenuVO queryMenu(String menuId);
+    List<QueryMenuVO> queryMenu(String menuId);
 
 
     /**

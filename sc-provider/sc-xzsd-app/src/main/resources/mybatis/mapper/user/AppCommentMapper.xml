@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.user.comments.dao.CommentDao">
+
+    <!--商品评价（列表）查询-->
+    <select id="commentsWithList" resultType="com.xzsd.app.user.comments.entity.CommentWithListVO">
+        select
+          comment_code as commentCode,
+          comment      as comment,
+          create_time  as createTime,
+          user_name    as userName,
+          user_code    as userCode,
+          goods_code   as goodsCode,
+          score  as goodsScore
+        from
+          t_app_comments
+        where
+          is_deleted = 0
+          and goods_code = #{goodsCode}
+        <if test="goodsScore &gt;= 0 and goodsScore &lt;= 2">
+            and score between 0 and 2
+        </if>
+        <if test="goodsScore == 3 or goodsScore == 4">
+            and score between 3 and 4
+        </if>
+        <if test="goodsScore == 5">
+            and score = 5
+        </if>
+        order by create_time desc
+    </select>
+
+
+
+    <!--app用户端订单评论-->
+    <insert id="orderComment">
+        insert into t_app_comments
+        (
+            comment_code,
+            user_code,
+            user_name,
+            comment,
+            goods_code,
+            score,
+            order_code,
+            image_path,
+            is_deleted,
+            creator,
+            create_time,
+            version
+        )
+        values
+        <foreach collection="commentInfoVOList" item="comment" index="i" separator="," >
+            <foreach collection="commentInfoVOList.get(i).getImagePath()" item="img" index="j" separator=",">
+                (
+                    #{comment.commentCode},
+                    #{userCode},
+                    #{useName},
+                    #{comment.comment},
+                    #{comment.goodsCode},
+                    #{comment.score},
+                    #{orderCode},
+                    #{img},
+                    0,
+                    #{creator},
+                    now(),
+                    0
+                )
+            </foreach>
+        </foreach>
+    </insert>
+
+
+    <!--app用户端订单评论 ==> 统计商品的评分+修改订单状态-->
+    <update id="updateGoodsSocre" >
+        update
+          t_sys_order as o,
+          t_sys_goods as g,
+          (
+            select
+              goods_code as goodsCode,
+              avg(score) as score
+            from
+              t_app_comments
+            group by goods_code
+          ) as score
+        set
+          g.goods_score = score.score
+          o.order_state = 3
+        where
+          g.goods_code = score.goodsCode
+          and o.order_code = #{orderCode}
+    </update>
+
+</mapper>

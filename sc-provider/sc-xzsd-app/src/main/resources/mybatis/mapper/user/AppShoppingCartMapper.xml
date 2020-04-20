@@ -9,6 +9,7 @@
         (
           shopping_cart_id,
           user_code,
+          user_name,
           goods_code,
           goods_name,
           image_path,
@@ -24,6 +25,7 @@
           select
             #{shoppingCartId},
             #{userCode},
+            #{userName},
             #{goodsCode},
             goods_name,
             goods_images,

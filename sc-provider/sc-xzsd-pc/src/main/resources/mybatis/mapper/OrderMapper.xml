@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.order.dao.OrderDao">
+
+    <!-- 订单（列表）查询 -->
+    <select id="ordersWithList" resultType="com.xzsd.pc.order.entity.OrderWithListVO">
+        select
+          o.order_code  as orderCode,
+          o.total_price as totalPrice,
+          o.order_state as orderState,
+          o.payment_state as paymentState,
+          o.phone as phone,
+          o.user_name as userName,
+          o.paid_date as paidDate,
+          o.store_code as storeCode,
+          o.version as version
+        from
+        <if test="currentUserRole == 1">
+          t_sys_store as s,
+        </if>
+          t_sys_order as o
+        where
+          o.is_deleted = 0
+        <if test="currentUserRole == 1">
+            and s.is_deleted = 0
+            and s.store_code = o.store_code
+            and s.user_code = #{currentUserCode}
+        </if>
+        <if test="userName != null and userName != ''">
+            and o.user_name like concat('%', #{userName}, '%')
+        </if>
+
+        <if test="orderCode != null and orderCode != ''">
+            and o.order_code like concat('%', #{orderCode}, '%')
+        </if>
+
+        <if test="phone != null and phone != ''">
+            and o.phone like concat('%', #{phone}, '%')
+        </if>
+
+        <if test="orderState != null and orderState != ''">
+            and o.order_state like concat('%', #{orderState}, '%')
+        </if>
+        <if test="paidDateOn != null and paidDateOn != '' and (paidDateEnd == null || paidDateEnd == '')">
+            and o.paid_date like concat('%', #{paidDateOn}, '%')
+        </if>
+        <if test="(paidDateOn == null || paidDateOn == '') and paidDateEnd != null and paidDateEnd != ''">
+            and o.paid_date like concat('%', #{paidDateOn}, '%')
+        </if>
+        <if test="paidDateOn != null and paidDateOn != '' and paidDateEnd != null and paidDateEnd != ''">
+            and o.paid_date between #{paidDateOn} and #{paidDateEnd}
+        </if>
+        order by o.create_time desc
+
+    </select>
+
+
+    <!--配置queryOrderMap-->
+    <resultMap id="queryOrderMap" type="com.xzsd.pc.order.entity.QueryOrderVO">
+        <id property="orderCode" column="orderCode"></id>
+        <result property="userCode" column="orderUserCode"></result>
+        <result property="goodsCode" column="goodsCode"></result>
+        <result property="shoppingCartIdList" column="shoppingCartIdList"></result>
+        <result property="version" column="version"></result>
+
+        <collection property="shoppingCart" javaType="list" ofType="com.xzsd.pc.order.entity.ShoppingCartListVO">
+            <id property="shoppingCartId" column="shoppingCartId"></id>
+            <result property="userCode" column="userCode"></result>
+            <result property="goodsCode" column="goodsCode"></result>
+            <result property="goodsName" column="goodsName"></result>
+            <result property="goodsCount" column="goodsCount"></result>
+            <result property="totalPrice" column="totalPrice"></result>
+            <result property="sellingPrice" column="sellingPrice"></result>
+            <result property="costPrice" column="costPrice"></result>
+        </collection>
+    </resultMap>
+    <!-- 订单详情查询-->
+    <select id="queryOrder" resultMap="queryOrderMap">
+        select
+          o.user_code as orderUserCode,
+          o.order_code as orderCode,
+          o.version as version,
+          o.shopping_cart_id as shoppingCartIdList,
+          s.shopping_cart_id as shoppingCartId,
+          s.user_code  as userCode,
+          s.goods_code as goodsCode,
+          s.goods_name as goodsName,
+          s.goods_count as goodsCount,
+          s.total_price as totalPrice,
+          s.cost_price as costPrice,
+          s.selling_price as sellingPrice
+        from
+          t_sys_order as o
+        join
+          t_app_shopping_cart as s
+        on
+          o.user_code = s.user_code
+          and o.order_code = s.order_code
+          and o.is_deleted = 0
+          and s.is_deleted = 0
+          and s.is_paid = 1
+        where o.order_code = #{orderCode}
+        <if test="shoppingCartIdList != null and shoppingCartIdList != ''">
+            and s.shopping_cart_id in
+            (
+            <foreach collection="shoppingCartIdList.split(',')" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+    
+    
+    
+    <!-- 修改订单状态 -->
+    <update id="updateOrderState">
+        update t_sys_order
+        set
+          order_state = #{orderState},
+          last_modified_by = #{lastModifiedBy},
+          modified_time = now(),
+          version = version + 1
+        where is_deleted = 0
+          and order_code = #{orderCode}
+          and version = #{version}
+    </update>
+
+</mapper>

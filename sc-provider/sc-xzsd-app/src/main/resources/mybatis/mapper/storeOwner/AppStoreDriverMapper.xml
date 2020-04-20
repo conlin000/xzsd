@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.storeOwner.driver.dao.StoreDriverDao">
+
+    <!--App店长端“司机（列表）查询-->
+    <select id="driverWithList" resultType="com.xzsd.app.storeOwner.driver.entity.DriverListVO">
+        select
+          d.driver_code as driverCode,
+          d.user_name as driverName,
+          d.phone as phone
+        from
+          t_sys_store as s,
+          t_sys_driver as d
+        where
+          s.is_deleted = 0
+          and d.is_deleted = 0
+          and s.user_code = #{currentUserCode}
+          and s.province = d.province
+          and s.city = d.city
+          and s.state = d.state
+    </select>
+</mapper>

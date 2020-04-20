@@ -63,7 +63,7 @@ public class HotCommodityService {
             return AppResponse.bizError("此商品已有热门位！");
         }
         // 查询热门位排序号是否存在
-        String hotSortNo = hotCommodityInfo.getHotSortNo();
+        int hotSortNo = hotCommodityInfo.getHotSortNo();
         int check = hotCommodityDao.checkHotSortNo(hotSortNo);
         if (check != 0){
             return AppResponse.bizError("热门位排序号已存在！");
@@ -125,10 +125,18 @@ public class HotCommodityService {
     public AppResponse updateHotCommodity(HotCommodityInfo hotCommodityInfo){
 
         String goodsCode = hotCommodityInfo.getGoodsCode();
+        Integer hotSortNo = hotCommodityInfo.getHotSortNo();
+        // 使用工具类获取当前用户id，记录创建者或修改者
+        String userId = SecurityUtils.getCurrentUserId();
+        // 配置修改者
+        hotCommodityInfo.setModifiedBy(userId);
         if (goodsCode != null && goodsCode != ""){
             // 商品编号查重
             int count = hotCommodityDao.checkGoodsCode(goodsCode);
             if (count != 0){
+                if (hotSortNo != null){
+                    return AppResponse.bizError("此商品已有热门位！请直接修改排序号,无需再选择商品！");
+                }
                 return AppResponse.bizError("此商品已有热门位！");
             }
             // 获取商品信息
@@ -138,18 +146,26 @@ public class HotCommodityService {
             hotCommodityInfo.setSellingPrice(infoTemp.getSellingPrice());
             hotCommodityInfo.setBooksIntroduction(infoTemp.getBooksIntroduction());
         }
-        // 查询热门位排序号查重
-        String hotSortNo = hotCommodityInfo.getHotSortNo();
-        if (hotSortNo != null && hotSortNo != ""){
-            int check = hotCommodityDao.checkHotSortNo(hotSortNo);
-            if (check != 0){
-                return AppResponse.bizError("热门位排序号已存在！");
+        // 交换热门序号
+        if (hotSortNo != null){
+            // 排序号查重
+            int flagCount = hotCommodityDao.checkHotSortNo(hotSortNo);
+            if (flagCount == 1){
+                // 交换热门序号
+                // getSomething
+                HotCommodityInfo infoTemp = hotCommodityDao.getSomething(hotCommodityInfo);
+                // 当需要更改的排序号不是自己本身才能交换
+                if ( !hotSortNo.equals(infoTemp.getHotSortNo())){
+                    // 配置修改者
+                    infoTemp.setModifiedBy(userId);
+                    // 热门位商品位修改
+                    flagCount = hotCommodityDao.updateHotCommodity(infoTemp);
+                    if (flagCount == 0){
+                        return AppResponse.versionError("修改失败，请刷新！（或该数据已被删除）2");
+                    }
+                }
             }
         }
-        // 使用工具类获取当前用户id，记录创建者或修改者
-        String userId = SecurityUtils.getCurrentUserId();
-        // 配置修改者
-        hotCommodityInfo.setModifiedBy(userId);
         // 热门位商品位修改
         int flagCount = hotCommodityDao.updateHotCommodity(hotCommodityInfo);
         if (flagCount == 0){

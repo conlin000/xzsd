@@ -4,10 +4,10 @@
 
 
 
-    <!--新增门店：省市区地级选择列表查询-->
+    <!--新增司机：省市区地级选择列表查询-->
     <select id="placeChoosing" resultType="com.xzsd.pc.driver.entity.PlaceVO">
         select
-        place_code  as palceCode,
+        place_code  as placeCode,
         place_level as placeLevel,
         place_name  as placeName,
         parent_place_code as  parentPlaceCode
@@ -30,6 +30,17 @@
           and user_acct = #{userAccount}
     </select>
 
+    <!--新增==>查询店铺邀请码-->
+    <select id="getInviteCode" resultType="java.lang.String">
+        select
+          invite_code
+        from
+          t_sys_store
+        where
+          is_deleted = 0
+          and user_code = #{userCode}
+    </select>
+
     <!--司机新增（user表）-->
     <insert id="addDriverToUserTable">
         insert into t_sys_user
@@ -40,6 +51,7 @@
           user_pwd,
           phone,
           id_card,
+          invite_code,
           role,
           is_deleted,
           creator,
@@ -54,6 +66,7 @@
           #{password},
           #{phone},
           #{idCard},
+          #{inviteCode},
           2,
           0,
           #{creator},
@@ -72,6 +85,7 @@
           phone,
           user_pwd,
           id_card,
+          invite_code,
           province,
           city,
           state,
@@ -88,6 +102,7 @@
           #{phone},
           #{password},
           #{idCard},
+          #{inviteCode},
           #{provinceCode},
           #{cityCode},
           #{stateCode},
@@ -196,6 +211,9 @@
         version   as version
       from t_sys_driver
       where is_deleted = 0
+        <if test="driverCode != null and driverCode != ''">
+            and driver_code like concat('%', #{driverCode}, '%')
+        </if>
         <if test="userName != null and userName != ''">
             and user_name like concat('%', #{userName}, '%')
         </if>

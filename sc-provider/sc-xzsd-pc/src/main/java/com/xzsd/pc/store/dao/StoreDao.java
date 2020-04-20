@@ -106,6 +106,16 @@ public interface StoreDao {
      */
     int updateStore(StoreInfo storeInfo);
 
+    /**
+     * 修改门店信息 ==> 获取新店长信息
+     * @description 修改门店信息，获取新店长信息
+     * @function getSomething
+     * @param storeInfo
+     * @type&return int
+     * @author Conlin
+     * @date
+     */
+    StoreInfo getSomething(StoreInfo storeInfo);
 
 
     /**
@@ -117,7 +127,7 @@ public interface StoreDao {
      * @author Conlin
      * @date
      */
-    QueryStoreVO queryStore(String storeCode);
+    List<QueryStoreVO> queryStore(String storeCode);
 
 
 

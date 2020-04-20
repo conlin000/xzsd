@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.storeOwner.me.dao.StoreMeDao">
+
+    <!--原密码查找-->
+    <select id="getPassword" resultType="java.lang.String">
+        select
+          user_pwd
+        from
+          t_sys_user
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </select>
+    <!--修改密码-->
+    <update id="updatePassword">
+        update t_sys_user
+        set
+          user_pwd = #{newPassword}
+        where
+          is_deleted = 0
+          and user_code = #{userId}
+    </update>
+
+
+    <!--App店长端店长信息查询-->
+    <select id="queryOwner" resultType="com.xzsd.app.storeOwner.me.entity.StoreOwnerVO">
+        select
+          u.image_path as imagePath,
+          u.user_code  as userCode,
+          u.user_name  as userName,
+          s.store_code as storeCode,
+          s.store_name as storeName,
+          s.invite_code as inviteCode,
+          s.store_addr as storeAddress,
+          s.phone  as phone
+        from
+          t_sys_user as u,
+          t_sys_store as s
+        where
+          u.is_deleted = 0
+          and s.is_deleted = 0
+          and u.user_code = #{userCode}
+          and u.role = 1
+          and s.user_code = #{userCode}
+    </select>
+
+</mapper>

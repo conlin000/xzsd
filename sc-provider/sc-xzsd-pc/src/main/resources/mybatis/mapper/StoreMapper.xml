@@ -25,7 +25,7 @@
     <!--新增门店：省市区地级选择列表查询-->
     <select id="placeChoosing" resultType="com.xzsd.pc.store.entity.PlaceVO">
         select
-          place_code  as palceCode,
+          place_code  as placeCode,
           place_level as placeLevel,
           place_name  as placeName,
           parent_place_code as parentPlaceCode
@@ -128,6 +128,18 @@
     </update>
 
 
+    <!--修改门店信息 ==> 获取新店长信息-->
+    <select id="getSomething" resultType="com.xzsd.pc.store.entity.StoreInfo">
+        select
+          user_acct as userAccount,
+          user_name as userName,
+          phone as phone,
+        from
+          t_sys_user
+        where
+          is_deleted = 0
+          and user_code = #{userCode}
+    </select>
 
     <!--修改门店信息-->
     <update id="updateStore">
@@ -172,22 +184,22 @@
     <!--门店详情查询-->
     <select id="queryStore" resultType="com.xzsd.pc.store.entity.QueryStoreVO">
         select
-          s.store_code  storeCode,
-          s.store_name  storeName,
-          s.phone phone,
-          s.user_code  userCode,
-          u.user_acct  userAccount,
-          s.business_license_code  licenseCode,
-          s.store_addr  storeAddress,
-          s.province  provinceCode,
-          s.city  cityCode,
-          s.state  stateCode,
-          s.invite_code  inviteCode,
-          s.address_details  addressDetails,
-          s.version  version
+          s.store_code  as storeCode,
+          s.store_name  as storeName,
+          s.phone as phone,
+          s.user_code  as userCode,
+          u.user_acct  as userAccount,
+          s.business_license_code  as licenseCode,
+          s.store_addr as storeAddress,
+          s.province   as provinceCode,
+          s.city   as cityCode,
+          s.state  as stateCode,
+          s.invite_code  as inviteCode,
+          s.address_details as addressDetails,
+          s.version as version
         from
-          t_sys_store s,
-          t_sys_user u
+          t_sys_store as s,
+          t_sys_user as u
         where s.is_deleted = 0
           and s.store_code = #{storeCode}
           and s.user_code = u.user_code
@@ -198,15 +210,16 @@
     <!--门店(列表)查询-->
     <select id="storeWithList" resultType="com.xzsd.pc.store.entity.StoreWithListVO">
         select
-          s.store_code storeCode,
-          s.store_name storeName,
-          s.phone  phone,
-          s.address_details  addressDetails,
-          u.user_name  userName,
-          s.invite_code  inviteCode
+          s.store_code as storeCode,
+          s.store_name as storeName,
+          s.phone as phone,
+          s.address_details as addressDetails,
+          u.user_name as userName,
+          s.invite_code as inviteCode,
+          s.version as version
         from
-           t_sys_store s,
-           t_sys_user u
+           t_sys_store as s,
+           t_sys_user as u
         where s.is_deleted = 0
           and s.user_code = u.user_code
           <if test="storeCode != null and storeCode != ''">

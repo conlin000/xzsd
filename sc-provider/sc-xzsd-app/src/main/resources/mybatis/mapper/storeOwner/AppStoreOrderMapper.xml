@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.app.storeOwner.order.dao.StoreOrderDao">
+
+    <!--配置App店长端订单查询resultMap-->
+    <resultMap id="storeOrderMap" type="com.xzsd.app.storeOwner.order.entity.OrderListVO">
+        <id property="orderCode"    column="orderCode"></id>
+        <result property="currentUserCode" column="currentUserCode"></result>
+        <result property="storeCode"    column="storeCode"></result>
+        <result property="orderState"   column="orderState"></result>
+        <result property="paymentState" column="paymentState"></result>
+        <result property="goodsCount"   column="goodsCount"></result>
+        <result property="totalPrice"   column="totalPrice"></result>
+        <result property="keyWord"  column="keyWord"></result>
+        <result property="userCode" column="userCode"></result>
+        <result property="userName" column="userName"></result>
+        <result property="phone" column="phone"></result>
+        <!---->
+        <collection property="shoppingCartList" ofType="com.xzsd.app.storeOwner.order.entity.ShoppingCartListVO">
+            <id property="goodsCode" column="goodsCode"></id>
+            <result property="goodsName" column="goodsName"></result>
+            <result property="imagePath" column="imagePath"></result>
+            <result property="bookIntroduction" column="bookIntroduction"></result>
+            <result property="sellingPrice"     column="sellingPrice"></result>
+            <result property="goodsCount"       column="goodsCount"></result>
+        </collection>
+    </resultMap>
+    <!--App店长端订单查询-->
+    <select id="orderWithList" resultMap="storeOrderMap">
+        select
+            st.user_code as currentUserCode,
+            st.store_code as storeCode,
+            o.order_code as orderCode,
+            o.order_state as orderState,
+            o.payment_state as paymentState,
+            s.goods_code as goodsCode,
+            s.goods_name as goodsName,
+            s.image_path as imagePath,
+            g.books_introduction as bookIntroduction,
+            s.selling_price as sellingPrice,
+            s.goods_count as goodsCount,
+            o.user_code as userCode,
+            o.user_name as userName,
+            o.phone as phone,
+            o.goods_count as goodsCount,
+            o.total_price as totalPrice
+        from
+          t_sys_order as o
+        join
+          t_sys_store as st
+        on
+          st.is_deleted = 0
+          and o.store_code = st.store_code
+          and st.user_code = #{currentUserCode}
+        join
+          t_app_shopping_cart as s
+        on
+          o.order_code = s.order_code
+          and s.is_deleted = 0
+          and s.is_paid = 1
+        join
+          t_sys_goods as g
+        on
+          g.goods_code = s.goods_code
+          and g.is_deleted = 0
+        where o.is_deleted = 0
+        <if test="shoppingCartId != null and shoppingCartId != ''">
+            and s.shopping_cart_id in
+            (
+            <foreach collection="shoppingCartId.split(',')" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="orderState == 0 or orderState == 1">
+            and o.order_state in(0,1)
+        </if>
+        <if test="orderState == 2 or orderState == 3">
+            and o.order_state in(2,3)
+        </if>
+        <if test="paymentState == 1">
+            and o.payment_state = 1
+        </if>
+        <if test="keyWord != null and keyWord != ''">
+            and (s.goods_name like concat('%', #{keyWord}, '%')
+            or g.books_introduction like concat('%', #{keyWord}, '%'))
+        </if>
+    </select>
+
+
+    <!--App店长端订单详情查询==>获得订单的门店信息-->
+    <select id="getStoreInfo" resultType="com.xzsd.app.storeOwner.order.entity.StoreQueryOrderVO">
+        select
+          st.store_code as storeCode,
+          st.store_name as storeName,
+          st.store_addr as storeAddress
+        from
+          t_sys_store as st
+        where
+          st.is_deleted = 0
+          and st.user_code = #{userCode}
+    </select>
+
+    <!--配置App店长端订单详情查询resultMap-->
+    <resultMap id="storeQueryOrderMap" type="com.xzsd.app.storeOwner.order.entity.StoreQueryOrderVO">
+        <id property="orderCode" column="orderCode"></id>
+        <result property="orderState"   column="orderState"></result>
+        <result property="paymentState" column="paymentState"></result>
+        <result property="createTime"   column="createTime"></result>
+        <result property="userCode" column="userCode"></result>
+        <result property="userName" column="userName"></result>
+        <result property="phone"    column="phone"></result>
+        <result property="storeCode"       column="storeCode"></result>
+        <result property="storeName"       column="storeName"></result>
+        <result property="storeAddress"    column="storeAddress"></result>
+        <result property="shoppingCartIdList" column="orderShoppingCartId"></result>
+        <result property="goodsCount" column="goodsCount"></result>
+        <result property="totalPrice" column="totalPrice"></result>
+        <!---->
+        <collection property="shoppingCartList" javaType="list" ofType="com.xzsd.app.storeOwner.order.entity.ShoppingCartListVO">
+            <id property="shoppingCartId" column="shoppingCartId"></id>
+            <result property="goodsCode" column="goodsCode"></result>
+            <result property="goodsName" column="goodsName"></result>
+            <result property="imagePath" column="imagePath"></result>
+            <result property="bookIntroduction" column="bookIntroduction"></result>
+            <result property="sellingPrice" column="sellingPrice"></result>
+            <result property="goodsCount" column="goodsCount"></result>
+        </collection>
+    </resultMap>
+    <!--App店长端订单详情查询-->
+    <select id="storeQueryOrder" resultMap="storeQueryOrderMap">
+       select
+        o.order_code as orderCode,
+        o.order_state as orderState,
+        o.payment_state as paymentState,
+        o.create_time as createTime,
+        o.user_code as userCode,
+        o.user_name as userName,
+        o.phone as phone,
+        o.store_code as storeCode,
+        o.goods_count as goodsCount,
+        o.total_price as totalPrice,
+        s.goods_code as goodsCode,
+        s.goods_name as goodsName,
+        s.image_path as imagePath,
+        g.books_introduction as bookIntroduction,
+        s.selling_price as sellingPrice,
+        s.goods_count as goodsCount
+      from
+          t_sys_order as o
+        join
+          t_app_shopping_cart as s
+        on
+          o.user_code = s.user_code
+          and o.order_code = s.order_code
+          and s.is_deleted = 0
+          and s.is_paid = 1
+        join
+          t_sys_goods as g
+        on
+          g.goods_code = s.goods_code
+          and g.is_deleted = 0
+      where o.is_deleted = 0
+          and o.order_code = #{orderCode}
+        <if test="shoppingCartIdList != null and shoppingCartIdList != ''">
+          and s.shopping_cart_id in
+        <foreach collection="shoppingCartIdList.split(',')" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        </if>
+    </select>
+
+    <!--App店长端“完成取货”-->
+    <update id="updateOrder">
+        update
+          t_sys_order
+        set
+          order_state = 2,
+          last_modified_by = #{lastModifiedBy},
+          modified_time = now(),
+          version = version + 1
+        where
+          is_deleted = 0
+          and order_code = #{orderCode}
+          and version = #{version}
+    </update>
+
+
+
+</mapper>

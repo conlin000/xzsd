@@ -5,13 +5,6 @@ package com.xzsd.pc.store.entity;
  */
 public class StoreWithListVO {
 
-    // 当前页码
-    private int pageNum;
-
-    // 一页的数据条数
-    private int pageSize;
-
-
     // 门店编号
     private String storeCode;
 
@@ -38,6 +31,16 @@ public class StoreWithListVO {
 
     // 邀请码
     private String inviteCode;
+
+    // 版本号
+    private int version;
+
+    // 当前页码
+    private int pageNum;
+
+    // 一页的数据条数
+    private int pageSize;
+
 
 
     /**
@@ -129,5 +132,13 @@ public class StoreWithListVO {
 
     public void setInviteCode(String inviteCode) {
         this.inviteCode = inviteCode;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

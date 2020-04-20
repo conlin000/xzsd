@@ -131,10 +131,26 @@ public class StoreService {
      */
     @Transactional(rollbackFor = Exception.class)
     public AppResponse updateStore(StoreInfo storeInfo){
+        // 校验店长，如果输入的账号是店长则返回“1”
+        int count = storeDao.checkStoreMan(storeInfo.getUserCode());
+        if (count != 1){
+            return AppResponse.notFound("此账号不是店长！");
+        }
         // 对输入的店长编号进行查询，一个店长只能有一家门店
-        int count = storeDao.checkUserCode(storeInfo.getUserCode());
+        count = storeDao.checkUserCode(storeInfo.getUserCode());
         if (count != 0){
             return AppResponse.duplicatError("此店长已有门店！");
+        }
+        if (storeInfo.getUserCode() != null && storeInfo.getUserCode() != ""){
+            // 查找新店长信息
+            StoreInfo infoTemp = storeDao.getSomething(storeInfo);
+            // 配置新信息
+            storeInfo.setUserAccount(infoTemp.getUserAccount());
+            storeInfo.setUserName(infoTemp.getUserName());
+            if (storeInfo.getPhone() != null && storeInfo.getPhone() != ""){
+                storeInfo.setPhone(infoTemp.getPhone());
+            }
+
         }
         // 地址拼接
         if (storeInfo.getProvinceCode() != null || storeInfo.getCityCode() != null ||
@@ -165,7 +181,7 @@ public class StoreService {
      */
     public AppResponse queryStore(String storeCode){
         // 门店详情查询
-        QueryStoreVO store = storeDao.queryStore(storeCode);
+        List<QueryStoreVO> store = storeDao.queryStore(storeCode);
         return AppResponse.success("查询成功", store);
     }
 

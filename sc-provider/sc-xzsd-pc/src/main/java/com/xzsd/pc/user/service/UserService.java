@@ -140,19 +140,18 @@ public class UserService {
         // 获取当前用户id，记录修改者或创建者
         String userId = SecurityUtils.getCurrentUserId();
         userInfo.setModifiedBy(userId);
-        // 检查性别是否合法
-        if (userInfo.getSex() < 0 || userInfo.getSex() >= 2){
-            return AppResponse.bizError("性别错误，请重新输入!（0-女，1-男）");
-        }
         // 密码加密
-        String pwd = PasswordUtils.generatePassword(userInfo.getPassword());
-        // 配置加密后的密码
-        userInfo.setPassword(pwd);
+        if (userInfo.getPassword() != null && userInfo.getPassword() != ""){
+            // 密码加密
+            String pwd = PasswordUtils.generatePassword(userInfo.getPassword());
+            // 配置加密后的密码
+            userInfo.setPassword(pwd);
+        }
         // 修改用户信息
         int count = userDao.updateUser(userInfo);
         if (0 == count) {
             return AppResponse.versionError("数据有变化，请刷新！(或数据已被删除)");
         }
-        return AppResponse.success("修改成功", userInfo);
+        return AppResponse.success("修改成功");
     }
 }
