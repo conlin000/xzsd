@@ -139,12 +139,7 @@ public class GoodsService {
     public AppResponse updateGoods(GoodsInfo goodsInfo){
         // 获取当前用户，记录修改者或创建者
         String userId = SecurityUtils.getCurrentUserId();
-
-//        /**
-//         * test
-//         */
-//        return AppResponse.success("a", goodsInfo);
-
+        // 配置修改者
         goodsInfo.setModifiedBy(userId);
         // 商品信息修改
         int count =  goodsDao.updateGoods(goodsInfo);
@@ -170,11 +165,14 @@ public class GoodsService {
         String userId = SecurityUtils.getCurrentUserId();
         // 配置实体类
         goodsInfo.setModifiedBy(userId);
+        // 分割商品编号字符串
+        List<String> goodsCodeList = Arrays.asList(goodsInfo.getGoodsCode().split(","));
         // 修改商品状态
         int count = goodsDao.changeGoodsState(goodsInfo);
         if (count == 0){
-
             return AppResponse.versionError("数据有变化，请刷新！（或数据已被删除）");
+        }else if (count != goodsCodeList.size()){
+            return AppResponse.versionError("某条数据修改失败，请复查");
         }
         return AppResponse.success("修改成功");
     }

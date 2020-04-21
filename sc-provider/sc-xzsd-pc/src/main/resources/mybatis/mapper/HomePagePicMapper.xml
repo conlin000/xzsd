@@ -110,8 +110,15 @@
           modified_time    = now(),
           version = version + 1
         where is_deleted = 0
-          and image_code = #{imageCode}
-          and version = #{version}
+          and image_code in
+        <foreach collection="imageCode.split(',')" item="item" index="i" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+          and version in
+        <foreach collection="version.split(',')" item="itemB" index="i" open="(" separator="," close=")">
+            #{itemB}
+        </foreach>
+
     </update>
 
     <!-- 首页轮播图（列表）查询 -->

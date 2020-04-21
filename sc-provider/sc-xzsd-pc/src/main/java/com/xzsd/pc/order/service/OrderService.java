@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -82,16 +83,18 @@ public class OrderService {
      */
     @Transactional(rollbackFor = Exception.class)
     public AppResponse updateOrderState(OrderInfo orderInfo){
-
-
         // 使用工具类获取当前用户id，用于修改创建者或修改者
         String userId = SecurityUtils.getCurrentUserId();
         // 配置修改者
         orderInfo.setLastModifiedBy(userId);
+        // 分割订单编号
+        List<String> orderCodeList = Arrays.asList(orderInfo.getOrderCode().split(","));
         // 修改订单状态
         int flagCount = orderDao.updateOrderState(orderInfo);
         if (flagCount == 0){
             return AppResponse.versionError("修改订单状态失败，请刷新！（或该数据已被删除）");
+        }else if (flagCount != orderCodeList.size()){
+            return AppResponse.versionError("某条数据修改失败，请复查");
         }
         return AppResponse.success("修改订单状态成功");
     }

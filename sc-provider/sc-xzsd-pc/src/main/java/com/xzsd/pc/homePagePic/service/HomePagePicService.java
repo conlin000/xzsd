@@ -122,10 +122,14 @@ public class HomePagePicService {
         String userId = SecurityUtils.getCurrentUserId();
         // 配置实体类
         imageInfo.setModifiedBy(userId);
+        // 分割轮播图编号
+        List<String> imageCodeList = Arrays.asList(imageInfo.getImageCode().split(","));
         // 修改首页轮播图状态
         int count = homePagePicDao.updatePicState(imageInfo);
         if (count == 0) {
             return AppResponse.versionError("数据有变化，修改状态失败");
+        }else if (count != imageCodeList.size()){
+            return AppResponse.versionError("某条数据修改失败，请复查");
         }
         return AppResponse.success("修改状态成功");
     }

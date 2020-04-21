@@ -247,6 +247,7 @@
           and version = #{version}
     </update>
 
+    
     <!-- 修改商品状态 -->
     <update id="changeGoodsState" >
         update t_sys_goods
@@ -257,9 +258,14 @@
             modified_time = now(),
             version = version + 1
         where is_deleted = 0
-          and goods_code = #{goodsCode}
-          and version = #{version}
-
+          and goods_code in 
+          <foreach collection="goodsCode.split(',')" item="item" index="i" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+          and version in
+          <foreach collection="version.split(',')" item="item" index="i" open="(" separator="," close=")">
+              #{item}
+          </foreach>
 
     </update>
 

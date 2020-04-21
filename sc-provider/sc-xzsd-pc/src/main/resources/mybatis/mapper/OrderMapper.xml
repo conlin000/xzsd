@@ -121,8 +121,14 @@
           modified_time = now(),
           version = version + 1
         where is_deleted = 0
-          and order_code = #{orderCode}
-          and version = #{version}
+          and order_code in
+        <foreach collection="orderCode.split(',')" item="item" index="i" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and version in
+        <foreach collection="version.split(',')" item="itemB" index="i" open="(" separator="," close=")">
+            #{itemB}
+        </foreach>
     </update>
 
 </mapper>

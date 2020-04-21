@@ -52,13 +52,11 @@ public class CatalogueService {
             if (count > 0){
                 return AppResponse.bizError("新增失败，此分类已存在！(或者输入的父类已被删除)");
             }
-
             // 将参数装进实体类
             catalogueInfo.setClassName(className);
             catalogueInfo.setNote(note);
             // 设置分类等级为“一级”
             catalogueInfo.setClassLevel(1);
-
             // 使用工具类生成分类编码
             String classCode = StringUtil.getCommonCode(2);
             catalogueInfo.setClassCode(classCode);

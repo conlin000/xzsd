@@ -92,38 +92,75 @@
         <id property="classCode" column="firClassCode"></id>
         <result property="className" column="firClassName"></result>
         <result property="classLevel" column="firClassLevel"></result>
-        <result property="version" column="version1"></result>
-        
-        <collection property="secClass" javaType="list" ofType="com.xzsd.pc.catalogue.entity.CalalogueWithListVO">
-            <id property="classCode" column="secClassCode"></id>
-            <result property="className" column="secClassName"></result>
-            <result property="parentClassCode" column="parentClassCode"></result>
-            <result property="classLevel" column="secClassLevel"></result>
-            <result property="version" column="version2"></result>
-        </collection>
+        <result property="version" column="firVersion"></result>
+        <!---->
+        <collection property="secClass" select="secClassList" column="firClassCode"></collection>
     </resultMap>
-
-
     <!-- 分类列表查询 -->
     <select id="classWithList" resultMap="classMap">
       select
-        c1.class_code as firClassCode,
-        c1.class_level as firClassLevel,
-        c1.class_name firClassName,
-        c1.version as version1,
-        c2.class_code as secClassCode,
-        c2.class_name as secClassName,
-        c2.parent_class_code as parentClassCode,
-        c2.class_level as secClassLevel,
-        c2.version as version2
+        class_code as firClassCode,
+        class_level as firClassLevel,
+        class_name as firClassName,
+        version as firVersion
       from
-        t_sys_catalogue_management as c1
-      join
-        t_sys_catalogue_management as c2
-      on
-        c1.class_code = c2.parent_class_code
-      where c1.is_deleted = 0
-        and c2.is_deleted = 0
-        and c1.class_level = 1
+        t_sys_catalogue_management
+      where
+        is_deleted = 0
+        and class_level = 1
     </select>
+    <!---->
+    <select id="secClassList" resultType="com.xzsd.pc.catalogue.entity.SecClassListVO">
+        select
+          class_code as classCode,
+          class_name as className,
+          parent_class_code as parentClassCode,
+          class_level as classLevel,
+          version as version
+        from
+          t_sys_catalogue_management
+        where
+          is_deleted = 0
+          and class_level = 2
+          and parent_class_code = #{firClassCode}
+    </select>
+
+
+
+    <!--&lt;!&ndash; 配置resulMap映射 &ndash;&gt;-->
+    <!--<resultMap id="classMap" type="com.xzsd.pc.catalogue.entity.CalalogueWithListVO">-->
+        <!--<id property="classCode" column="firClassCode"></id>-->
+        <!--<result property="className" column="firClassName"></result>-->
+        <!--<result property="classLevel" column="firClassLevel"></result>-->
+        <!--<result property="version" column="firVersion"></result>-->
+        <!--&lt;!&ndash;&ndash;&gt;-->
+        <!--<collection property="secClass" ofType="com.xzsd.pc.catalogue.entity.CalalogueWithListVO">-->
+            <!--<id property="classCode" column="secClassCode"></id>-->
+            <!--<result property="className" column="secClassName"></result>-->
+            <!--<result property="parentClassCode" column="parentClassCode"></result>-->
+            <!--<result property="classLevel" column="secClassLevel"></result>-->
+            <!--<result property="version" column="secVersion"></result>-->
+        <!--</collection>-->
+    <!--</resultMap>-->
+    <!--&lt;!&ndash;&ndash;&gt;-->
+    <!--<select id="classWithList" resultMap="classMap">-->
+        <!--select-->
+          <!--f.class_code as firClassCode,-->
+          <!--f.class_name as firClassName,-->
+          <!--f.class_level as firClassLevel,-->
+          <!--s.class_code as secClassCode,-->
+          <!--s.class_name as secClassName,-->
+          <!--s.class_level as secClassLevel-->
+        <!--from-->
+          <!--t_sys_catalogue_management as f,-->
+          <!--t_sys_catalogue_management as s-->
+        <!--where-->
+          <!--f.is_deleted = 0-->
+          <!--and s.is_deleted = 0-->
+          <!--and f.is_deleted = 0-->
+          <!--and f.class_level = 1-->
+          <!--and f.class_code = s.parent_class_code-->
+          <!--and s.class_level = 2-->
+    <!--</select>-->
+
 </mapper>
